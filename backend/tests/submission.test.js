@@ -6,6 +6,7 @@ import { assessment } from "../src/model/assessment.js";
 import { course } from "../src/model/course.js";
 import { lessons } from "../src/model/lessons.js";
 import { user } from "../src/model/user.js";
+import { category } from "../src/model/category.js";
 
 describe("Submission API", () => {
   let testStudent;
@@ -13,6 +14,7 @@ describe("Submission API", () => {
   let testCourse;
   let testLesson;
   let testAssessment;
+  let testCategory;
 
   beforeAll(async () => {
     // Create a test student
@@ -33,10 +35,15 @@ describe("Submission API", () => {
       role: "Tutor",
     });
 
+    testCategory = await category.create({
+      name: "Testing",
+      description: "Software testing courses",
+    });
+
     // Create a test course
     testCourse = await course.create({
       title: "Test Course for Submissions",
-      category: "Testing",
+      category: testCategory._id,
       description: "A course for testing submissions",
       price: 250.0,
       tutor: testTutor._id,
@@ -67,6 +74,7 @@ describe("Submission API", () => {
     await lessons.deleteMany({});
     await course.deleteMany({});
     await user.deleteMany({});
+    await category.deleteMany({});
   });
 
   describe("Submission Model Tests", () => {

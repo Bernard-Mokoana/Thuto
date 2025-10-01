@@ -4,10 +4,12 @@ import app from "../src/app.js";
 import { lessons } from "../src/model/lessons.js";
 import { course } from "../src/model/course.js";
 import { user } from "../src/model/user.js";
+import { category } from "../src/model/category.js";
 
 describe("Lesson API", () => {
   let testTutor;
   let testCourse;
+  let testCategory;
 
   beforeAll(async () => {
     // Create a test tutor
@@ -19,10 +21,15 @@ describe("Lesson API", () => {
       role: "Tutor",
     });
 
+    testCategory = await category.create({
+      name: "Testing",
+      description: "Software testing courses",
+    });
+
     // Create a test course
     testCourse = await course.create({
       title: "Test Course for Lessons",
-      category: "Testing",
+      category: testCategory._id,
       description: "A course for testing lessons",
       price: 300.0,
       tutor: testTutor._id,
@@ -34,6 +41,7 @@ describe("Lesson API", () => {
     await lessons.deleteMany({});
     await course.deleteMany({});
     await user.deleteMany({});
+    await category.deleteMany({});
   });
 
   describe("Lesson Model Tests", () => {

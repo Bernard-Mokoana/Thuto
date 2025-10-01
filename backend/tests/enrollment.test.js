@@ -4,11 +4,13 @@ import app from "../src/app.js";
 import { enrollment } from "../src/model/enrollment.js";
 import { course } from "../src/model/course.js";
 import { user } from "../src/model/user.js";
+import { category } from "../src/model/category.js";
 
 describe("Enrollment API", () => {
   let testStudent;
   let testTutor;
   let testCourse;
+  let testCategory;
 
   beforeAll(async () => {
     testStudent = await user.create({
@@ -27,9 +29,14 @@ describe("Enrollment API", () => {
       role: "Tutor",
     });
 
+    testCategory = await category.create({
+      name: "Testing",
+      description: "Software testing courses",
+    });
+
     testCourse = await course.create({
       title: "Test Course for Enrollments",
-      category: "Testing",
+      category: testCategory._id,
       description: "A course for testing enrollments",
       price: 300.0,
       tutor: testTutor._id,
@@ -41,6 +48,7 @@ describe("Enrollment API", () => {
     await enrollment.deleteMany({});
     await course.deleteMany({});
     await user.deleteMany({});
+    await category.deleteMany({});
   });
 
   describe("Enrollment Model Tests", () => {

@@ -1,6 +1,8 @@
 import { user } from "../model/user.js";
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
+import bcrypt from "bcryptjs";
+import { generateToken } from "../utils/generateToken.js";
 import dotenv from "dotenv";
 
 dotenv.config({
@@ -68,5 +70,88 @@ export const resetPassword = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Error resetting the password", error: error.message });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if user exists
+    const existingUser = await user.findOne({ email });
+    if (!existingUser) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // Generate token
+    const token = generateToken(existingUser._id);
+
+    // Return user and token
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: existingUser._id,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        email: existingUser.email,
+        role: existingUser.role,
+      },
+      token,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const register = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await user.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const newUser = new user({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      role: role || "Student",
+    });
+
+    await newUser.save();
+
+    // Generate token
+    const token = generateToken(newUser._id);
+
+    // Return user and token
+    res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      token,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

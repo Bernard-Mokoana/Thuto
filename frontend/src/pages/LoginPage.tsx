@@ -29,7 +29,7 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(formData.email, formData.password);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

@@ -52,7 +52,7 @@ const RegisterPage: React.FC = () => {
         password: formData.password,
         role: formData.role,
       });
-      navigate('/dashboard');
+      navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

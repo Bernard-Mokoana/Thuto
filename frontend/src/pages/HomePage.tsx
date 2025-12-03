@@ -28,9 +28,10 @@ const HomePage: React.FC = () => {
     const fetchFeaturedCourses = async () => {
       try {
         const response = await courseAPI.getCourses({ limit: 6 });
-        setFeaturedCourses(response.data.data || response.data);
+        setFeaturedCourses(response.data.course || []);
       } catch (error) {
         console.error('Error fetching courses:', error);
+        setFeaturedCourses([]);
       } finally {
         setLoading(false);
       }

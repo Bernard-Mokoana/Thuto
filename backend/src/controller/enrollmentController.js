@@ -31,12 +31,13 @@ export const enrollInCourse = async (req, res) => {
 export const getUserEnrollments = async (req, res) => {
   try {
     const { userId } = req.params;
+    const targetUserId = userId || req.user._id;
 
-    if (!mongoose.Types.ObjectId.isValid(userId))
+    if (!mongoose.Types.ObjectId.isValid(targetUserId))
       return res.status(400).json({ message: "Invalid userId format" });
 
     const enrollments = await enrollment
-      .find({ student: userId })
+      .find({ student: targetUserId })
       .populate("course")
       .populate("progress.lesson");
 

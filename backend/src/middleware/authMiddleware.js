@@ -17,7 +17,7 @@ export const verifyJwt = async (req, res, next) => {
     const decoded = jwt.verify(token, accessToken);
 
     const foundUser = await user
-      .findById(decoded.userId)
+      .findById(decoded.id)
       .select("-password -refreshToken")
       .lean();
 

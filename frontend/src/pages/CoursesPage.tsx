@@ -40,7 +40,7 @@ const CoursesPage: React.FC = () => {
         };
         
         const response = await courseAPI.getCourses(params);
-        setCourses(response.data.data || response.data);
+        setCourses(response.data.course || []);
       } catch (error) {
         console.error('Error fetching courses:', error);
       } finally {

@@ -73,9 +73,9 @@ const CourseDetailPage: React.FC = () => {
         if (isAuthenticated && user) {
           try {
             const enrollmentsResponse = await enrollmentAPI.getEnrollments();
-            const userEnrollments = enrollmentsResponse.data.data || enrollmentsResponse.data;
-            const enrolled = userEnrollments.some((enrollment: any) => 
-              enrollment.course._id === id && enrollment.student._id === user._id
+            const userEnrollments = enrollmentsResponse.data.enrollments || [];
+            const enrolled = userEnrollments.some((enrollment: any) =>
+              enrollment.course._id === id
             );
             setIsEnrolled(enrolled);
           } catch (error) {

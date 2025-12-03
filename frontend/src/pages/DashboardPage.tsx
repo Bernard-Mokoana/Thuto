@@ -48,7 +48,7 @@ const DashboardPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await enrollmentAPI.getEnrollments();
-        const userEnrollments = response.data.data || response.data;
+        const userEnrollments = response.data.enrollments || [];
         setEnrollments(userEnrollments);
 
         // Calculate stats

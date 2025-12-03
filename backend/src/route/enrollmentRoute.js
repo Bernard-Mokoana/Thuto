@@ -16,6 +16,7 @@ const router = express.Router();
 router.use(verifyJwt);
 
 router.post("/enroll", studentOnly, enrollInCourse);
+router.get("/", getUserEnrollments);
 router.get("/user/:userId", adminOnly, studentOnly, getUserEnrollments);
 router.patch("/complete", markLessonComplete);
 router.delete("/:id", adminOnly, deleteEnrollment);

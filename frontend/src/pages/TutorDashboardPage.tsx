@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { courseAPI, statsAPI } from '../services/api';
+import { courseAPI } from '../services/api';
 import { 
   BookOpen, 
   Plus, 
@@ -44,19 +44,16 @@ const TutorDashboardPage: React.FC = () => {
     const fetchTutorData = async () => {
       try {
         setLoading(true);
-        const [coursesResponse, statsResponse] = await Promise.all([
-          courseAPI.getCourses(),
-          statsAPI.getUserStats(user!._id)
-        ]);
-        
-        setCourses(coursesResponse.data.data || coursesResponse.data);
-        
+        const coursesResponse = await courseAPI.getCourses();
+
+        setCourses(coursesResponse.data.course || []);
+
         // Calculate stats from courses
         const totalCourses = courses.length;
         const publishedCourses = courses.filter(course => course.isPublished).length;
         const totalStudents = courses.reduce((total, course) => total + (course.enrollmentCount || 0), 0);
         const totalRevenue = courses.reduce((total, course) => total + (course.revenue || 0), 0);
-        
+
         setStats({
           totalCourses,
           publishedCourses,

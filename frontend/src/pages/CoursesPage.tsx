@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { courseAPI, categoryAPI } from '../services/api';
 
@@ -25,7 +25,7 @@ interface Category {
   name: string;
 }
 
-const CoursesPage: React.FC = () => {
+const CoursesPage = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);

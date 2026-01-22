@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: Thuto-backend
+    env: node
+    buildCommand: npm install --prefix backend
+    startCommand: npm run dev --prefix backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      # Add other environment variables here
+      # - key: DATABASE_URL
+      #   value: your_database_url
+      # - key: JWT_SECRET
+      #   value: your_jwt_secret
+      # - key: CORS_ORIGIN
+      #   value: your_frontend_url

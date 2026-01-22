@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { courseAPI } from '../services/api';
-import { Search, Filter, Star, Clock, BookOpen, ArrowRight } from 'lucide-react';
+import { courseAPI, categoryAPI } from '../services/api';
 
 interface Course {
   _id: string;
@@ -21,8 +20,14 @@ interface Course {
   isPublished: boolean;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
 const CoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
@@ -51,30 +56,42 @@ const CoursesPage: React.FC = () => {
     fetchCourses();
   }, [searchTerm, selectedLevel, selectedCategory]);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await categoryAPI.getCategories();
+        setCategories(response.data.categories || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const filteredCourses = courses.filter(course => course.isPublished);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-white mb-4">All Courses</h1>
-          <p className="text-lg text-white/70">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">All Courses</h1>
+          <p className="text-lg text-gray-600">
             Discover courses that match your interests and career goals
           </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="glass rounded-lg p-6 mb-8 animate-slide-up">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60" />
                 <input
                   type="text"
                   placeholder="Search courses..."
-                  className="input w-full pl-10 pr-4 py-2"
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -84,7 +101,7 @@ const CoursesPage: React.FC = () => {
             {/* Level Filter */}
             <div>
               <select
-                className="input w-full px-3 py-2"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
               >
@@ -95,10 +112,26 @@ const CoursesPage: React.FC = () => {
               </select>
             </div>
 
+            {/* Category Filter */}
+            <div>
+              <select
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Sort */}
             <div>
               <select
-                className="input w-full px-3 py-2"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
@@ -114,7 +147,7 @@ const CoursesPage: React.FC = () => {
 
         {/* Results Count */}
         <div className="mb-6">
-          <p className="text-white/70">
+          <p className="text-gray-600">
             {loading ? 'Loading...' : `${filteredCourses.length} courses found`}
           </p>
         </div>
@@ -123,21 +156,21 @@ const CoursesPage: React.FC = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="card rounded-lg overflow-hidden animate-pulse">
-                <div className="h-48 bg-slate-700"></div>
+              <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="h-48 bg-gray-200"></div>
                 <div className="p-6">
-                  <div className="h-4 bg-slate-600 rounded mb-2"></div>
-                  <div className="h-4 bg-slate-600 rounded mb-4 w-3/4"></div>
-                  <div className="h-4 bg-slate-600 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-4 w-3/4"></div>
+                  <div className="h-4 bg-gray-300 rounded w-1/2"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : filteredCourses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCourses.map((course, index) => (
-              <div key={course._id} className="card rounded-lg overflow-hidden hover-lift animate-slide-up" style={{animationDelay: `${index * 0.1}s`}}>
-                <div className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+            {filteredCourses.map((course) => (
+              <div key={course._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="h-48 bg-gray-200 flex items-center justify-center">
                   {course.thumbnail ? (
                     <img
                       src={course.thumbnail}
@@ -145,41 +178,39 @@ const CoursesPage: React.FC = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <BookOpen className="h-16 w-16 text-accent" />
+                    <span className="text-gray-400">No Image</span>
                   )}
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-accent font-medium">
+                    <span className="text-sm text-blue-500 font-medium">
                       {course.category?.name || 'General'}
                     </span>
-                    <span className="text-sm text-white/60 capitalize">{course.level}</span>
+                    <span className="text-sm text-gray-500 capitalize">{course.level}</span>
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2 line-clamp-2">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2 line-clamp-2">
                     {course.title}
                   </h3>
-                  <p className="text-white/70 mb-4 line-clamp-2">
+                  <p className="text-gray-600 mb-4 line-clamp-2">
                     {course.description}
                   </p>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center text-sm text-white/60">
-                      <Clock className="h-4 w-4 mr-1" />
+                    <div className="flex items-center text-sm text-gray-500">
                       {course.duration} min
                     </div>
-                    <div className="text-2xl font-bold text-accent">
+                    <div className="text-2xl font-bold text-blue-500">
                       ${course.price}
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-white/60">
+                    <div className="text-sm text-gray-500">
                       by {course.tutor.firstName} {course.tutor.lastName}
                     </div>
                     <Link
                       to={`/courses/${course._id}`}
-                      className="btn-primary py-2 px-4 inline-flex items-center text-sm"
+                      className="bg-blue-500 text-white py-2 px-4 rounded-md inline-flex items-center text-sm hover:bg-blue-600"
                     >
                       View Course
-                      <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
                   </div>
                 </div>
@@ -188,9 +219,8 @@ const CoursesPage: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <BookOpen className="h-16 w-16 text-white/40 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No courses found</h3>
-            <p className="text-white/70">
+            <h3 className="text-lg font-medium text-gray-800 mb-2">No courses found</h3>
+            <p className="text-gray-600">
               Try adjusting your search criteria or browse all courses.
             </p>
           </div>

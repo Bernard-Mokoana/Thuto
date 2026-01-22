@@ -60,9 +60,9 @@ app.use(cookieParser());
 //   console.log("WS proxy not created: WEBSOCKET_URL not set");
 // }
 
-// app.get("/health", (res, req) => {
-//   res.json({ ok: true, uptime: process.uptime() });
-// });
+app.get("/health", (req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
 
 import courseRoute from "./route/courseRoute.js";
 import userRoute from "./route/userRoute.js";
@@ -76,6 +76,7 @@ import reportRoute from "./route/reportRoute.js";
 import certificateRoute from "./route/certificateRoute.js";
 import progressRoute from "./route/progressRoute.js";
 import authRoute from "./route/authRoute.js";
+import categoryRoute from "./route/categoryRoute.js";
 
 app.use("/api/v1/courses", courseRoute);
 app.use("/api/v1/users", userRoute);
@@ -89,5 +90,6 @@ app.use("/api/v1/reports", reportRoute);
 app.use("/api/v1/certificates", certificateRoute);
 app.use("/api/v1/progress", progressRoute);
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/categories", categoryRoute);
 
 export default app;

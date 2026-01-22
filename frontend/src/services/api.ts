@@ -1,8 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
-// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -11,7 +10,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -25,7 +23,6 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -38,7 +35,6 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API
 export const authAPI = {
   login: (credentials: { email: string; password: string }) =>
     api.post("/auth/login", credentials),
@@ -53,7 +49,6 @@ export const authAPI = {
   getProfile: () => api.get("/auth/profile"),
 };
 
-// Course API
 export const courseAPI = {
   getCourses: (params?: {
     page?: number;
@@ -69,7 +64,6 @@ export const courseAPI = {
   deleteCourse: (id: string) => api.delete(`/courses/${id}`),
 };
 
-// User API
 export const userAPI = {
   getUsers: () => api.get("/users"),
   getUser: (id: string) => api.get(`/users/${id}`),
@@ -77,7 +71,6 @@ export const userAPI = {
   deleteUser: (id: string) => api.delete(`/users/${id}`),
 };
 
-// Enrollment API
 export const enrollmentAPI = {
   getEnrollments: () => api.get("/enrollments"),
   createEnrollment: (enrollmentData: { course: string; student: string }) =>
@@ -97,7 +90,10 @@ export const lessonAPI = {
   deleteLesson: (id: string) => api.delete(`/lessons/${id}`),
 };
 
-// Progress API
+export const categoryAPI = {
+  getCategories: () => api.get("/categories"),
+};
+
 export const progressAPI = {
   getProgress: (courseId: string) => api.get(`/progress/course/${courseId}`),
   updateProgress: (progressData: any) => api.post("/progress", progressData),
@@ -105,7 +101,6 @@ export const progressAPI = {
     api.post(`/progress/lesson/${lessonId}/complete`),
 };
 
-// Transaction API
 export const transactionAPI = {
   getTransactions: () => api.get("/transaction"),
   createTransaction: (transactionData: any) =>
@@ -113,7 +108,6 @@ export const transactionAPI = {
   getTransaction: (id: string) => api.get(`/transaction/${id}`),
 };
 
-// Assessment API
 export const assessmentAPI = {
   getAssessments: (courseId: string) =>
     api.get(`/assessments/course/${courseId}`),
@@ -125,7 +119,6 @@ export const assessmentAPI = {
   deleteAssessment: (id: string) => api.delete(`/assessments/${id}`),
 };
 
-// Submission API
 export const submissionAPI = {
   getSubmissions: () => api.get("/submission"),
   createSubmission: (submissionData: any) =>
@@ -136,7 +129,6 @@ export const submissionAPI = {
     api.put(`/submission/${id}/grade`, { grade }),
 };
 
-// Certificate API
 export const certificateAPI = {
   getCertificates: () => api.get("/certificates"),
   getCertificate: (id: string) => api.get(`/certificates/${id}`),
@@ -144,7 +136,6 @@ export const certificateAPI = {
     api.post(`/certificates/generate/${courseId}`),
 };
 
-// Stats API
 export const statsAPI = {
   getStats: () => api.get("/stats"),
   getCourseStats: (courseId: string) => api.get(`/stats/course/${courseId}`),

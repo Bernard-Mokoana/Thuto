@@ -81,7 +81,7 @@ export const updateLesson = async (req, res) => {
     lesson.title = title ?? lesson.title;
     lesson.content = content ?? lesson.content;
     lesson.videoUrl = videoUrl ?? lesson.videoUrl;
-    lesson.order = order ?? lesson.order;
+    lesson.Order = order ?? lesson.Order;
 
     const updated = await lesson.save();
 

@@ -1,6 +1,6 @@
 # 🎓 MERN Stack Education Platform
 
-A full-stack, personalized online learning platform built with the MERN stack (MongoDB, Express.js, React, Node.js). This project powers user authentication, course creation and enrollment, lesson management, progress tracking, and certificate generation.
+A full-stack, Online learning platform built with the MERN stack (MongoDB, Express.js, React, Node.js). This project powers user authentication, course creation and enrollment, lesson management, progress tracking, and certificate generation.
 
 ---
 

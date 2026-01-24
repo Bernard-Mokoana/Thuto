@@ -6,33 +6,25 @@ dotenv.config({
   path: "./.env",
 });
 
-const accessToken = process.env.ACCESS_TOKEN_SECRET;
+const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
 
 export const verifyJwt = async (req, res, next) => {
+  const header = req.headers.authorization || "";
+  const [scheme, tokenFromHeader] = header.split(" ");
+  const tokenFromCookie = req.cookies?.accessToken;
+
+  const token = scheme === "Bearer" ? tokenFromHeader : tokenFromCookie;
+
+  if (!token) return res.status(401).json({ message: "No token provided" });
+
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token)
-      return res.status(401).json({ message: "Authorization required" });
-
-    const decoded = jwt.verify(token, accessToken);
-
-    const foundUser = await user
-      .findById(decoded.id)
-      .select("-password -refreshToken")
-      .lean();
-
-    if (!foundUser) {
-      return res.status(401).json({ message: "User not found" });
-    }
-
-    req.user = foundUser;
+    const decoded = jwt.verify(token, jwtSecret);
+    req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
     next();
   } catch (error) {
-    console.error("JWT verification error: ", error.message);
-
-    return res
-      .status(401)
-      .json({ message: "Token Invalid or expired", error: error.message });
+    const msg =
+      error.name === "JsonWebTokenError" ? "Invalid token" : error.message;
+    return res.status(401).json({ message: msg });
   }
 };
 

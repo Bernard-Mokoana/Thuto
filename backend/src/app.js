@@ -64,6 +64,10 @@ app.get("/health", (req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
 });
 
+app.get("/", (req, res) => {
+  res.send("JWT Authentication API running...");
+});
+
 import courseRoute from "./route/courseRoute.js";
 import userRoute from "./route/userRoute.js";
 import statsRoute from "./route/statsRoutes.js";

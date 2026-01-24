@@ -44,7 +44,7 @@ export const authAPI = {
     email: string;
     password: string;
     role: "Student" | "Tutor" | "Admin";
-  }) => api.post("/auth/register", userData),
+  }) => api.post("/users/register", userData),
   logout: () => api.post("/auth/logout"),
   getProfile: () => api.get("/auth/profile"),
 };

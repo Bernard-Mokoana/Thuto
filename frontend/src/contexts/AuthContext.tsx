@@ -47,7 +47,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Verify token and get user data
       authAPI.getProfile()
         .then(response => {
           setUser(response.data.user);

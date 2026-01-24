@@ -2,12 +2,85 @@ import { user } from "../model/user.js";
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generateToken.js";
-import dotenv from "dotenv";
+import {
+  signAccessToken,
+  signRefreshToken,
+  hashToken,
+  createJwtId,
+  persistRefreshToken,
+  setRefreshCookie,
+  rotateRefreshToken,
+} from "../utils/tokenUtils.js";
+import RefreshToken from "../model/refreshToken.js";
 
-dotenv.config({
-  path: "./.env",
-});
+const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const User = await user.findOne({ email });
+    if (!User) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, User.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const accessToken = signAccessToken(User);
+
+    const jwtId = createJwtId();
+    const refreshToken = signRefreshToken(User, jwtId);
+
+    await persistRefreshToken({
+      user: User,
+      refreshToken: refreshToken,
+      jwtId: jwtId,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    setRefreshCookie(res, refreshToken);
+
+    return res.status(200).json({
+      message: "User login successfully ",
+      accessToken,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+    if (token) {
+      const tokenHash = hashToken(token);
+      const doc = await RefreshToken.findOne({ tokenHash });
+      if (doc && !doc.revokedAt) {
+        doc.revokedAt = new Date();
+        await doc.save();
+      }
+    }
+
+    res
+      .status(200)
+      .clearCookie("refreshToken", { path: "/api/v1/auth/refresh" })
+      .json({ message: "User logged out successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
 
 export const forgotPassword = async (req, res) => {
   try {
@@ -73,85 +146,44 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
+export const refresh = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const token = req.cookies.refreshToken;
 
-    // Check if user exists
-    const existingUser = await user.findOne({ email });
-    if (!existingUser) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!token) return res.status(401).json({ message: "No refresh token" });
+
+    let decoded;
+
+    try {
+      decoded = jwt.verify(token, jwtSecret);
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid refresh token" });
     }
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      existingUser.password
-    );
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    const tokenHash = hashToken(token);
+    const doc = await refreshToken
+      .findOne({
+        tokenHash,
+        jwtId: decoded.jwtId,
+      })
+      .populate("User");
+
+    if (!doc)
+      return res.status(401).json({ message: "Refresh token not recognized" });
+
+    if (doc.revokedAt) {
+      return res.status(401).json({ message: "Refresh token revoked" });
     }
 
-    // Generate token
-    const token = generateToken(existingUser._id);
+    if (doc.expiresAt < new Date()) {
+      return res.status(401).json({ message: "Refresh token expired" });
+    }
 
-    // Return user and token
-    res.status(200).json({
-      message: "Login successful",
-      user: {
-        _id: existingUser._id,
-        firstName: existingUser.firstName,
-        lastName: existingUser.lastName,
-        email: existingUser.email,
-        role: existingUser.role,
-      },
-      token,
-    });
+    const result = await rotateRefreshToken(doc, doc.user, req, res);
+    return res.status(200).json({ accessToken: result.accessToken });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
-export const register = async (req, res) => {
-  try {
-    const { firstName, lastName, email, password, role } = req.body;
-
-    // Check if user already exists
-    const existingUser = await user.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const newUser = new user({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      role: role || "Student",
-    });
-
-    await newUser.save();
-
-    // Generate token
-    const token = generateToken(newUser._id);
-
-    // Return user and token
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        _id: newUser._id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        role: newUser.role,
-      },
-      token,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };

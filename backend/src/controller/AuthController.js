@@ -1,6 +1,5 @@
 import { user } from "../model/user.js";
 import crypto from "crypto";
-import sendEmail from "../utils/sendEmail.js";
 import bcrypt from "bcryptjs";
 import {
   signAccessToken,
@@ -12,6 +11,7 @@ import {
   rotateRefreshToken,
 } from "../utils/tokenUtils.js";
 import RefreshToken from "../model/refreshToken.js";
+import { sendForgotPasswordEmail } from "../utils/email.util.js";
 
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
 

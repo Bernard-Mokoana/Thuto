@@ -1,6 +1,6 @@
 import {
   register,
-  getUserProfile,
+  getUserProfileById as getUserProfile,
   updateUserProfile,
   getAllUsers,
 } from "../controller/userController.js";
@@ -13,7 +13,7 @@ router.post("/register", register);
 
 router.use(verifyJwt);
 
-router.route("/profile").get(getUserProfile).put(updateUserProfile);
-router.get("/", adminOnly, getAllUsers);
+router.route("/profile/:userId").get(getUserProfile).put(updateUserProfile);
+router.get("/", getAllUsers);
 
 export default router;

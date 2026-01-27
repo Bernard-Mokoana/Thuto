@@ -13,6 +13,7 @@ route.post("/login", login);
 route.post("/forgot-password", forgotPassword);
 route.post("/reset-password", resetPassword);
 route.get("/refresh", refresh);
+rout.get("/email-password");
 route.post("/logout", logout);
 
 export default route;

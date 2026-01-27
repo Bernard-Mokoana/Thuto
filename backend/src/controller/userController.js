@@ -1,6 +1,11 @@
 import { user } from "../model/user.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import { sendEmailVerification } from "../utils/email.util.js";
+import {
+  generateEmailVerificationToken,
+  createJwtId,
+} from "../utils/tokenUtils.js";
 
 dotenv.config({
   path: "./.env",
@@ -30,15 +35,36 @@ export const register = async (req, res) => {
       role,
     });
 
+    const userId = newUser._id;
+    const jwtId = createJwtId();
+    const ip = req.ip;
+    const userAgent = req.headers["user-agent"];
+
+    try {
+      const verificationToken = generateEmailVerificationToken(
+        userId,
+        jwtId,
+        ip,
+        userAgent
+      );
+      await sendEmailVerification(email, verificationToken);
+    } catch (error) {
+      console.error("Error sending email verification:", error);
+    }
+
     return res
       .status(201)
       .json({ message: "User created successfully", data: newUser });
   } catch (error) {}
   return res.status(500).json({ message: "Failed to create a user" });
 };
-export const getUserProfile = async (req, res) => {
+export const getUserProfileById = async (req, res) => {
   try {
-    const User = await user.findById(req.user._id).select("-password");
+    const userId = req.user._id || req.params._id;
+
+    if (!userId) return res.status(404).json({ message: "User not found" });
+
+    const User = await user.findById(userId).select("-password");
     return res.status(200).json({ user: User });
   } catch (error) {
     return res

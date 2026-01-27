@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import RefreshToken from "../model/refreshToken.js";
+import EmailVerification from "../model/emailVerification.js";
 import dotenv from "dotenv";
 
 dotenv.config({
@@ -90,6 +91,23 @@ async function rotateRefreshToken(oldDoc, user, req, res) {
   return newAccess;
 }
 
+async function generateEmailVerificationToken(user, jwtId, ip, userAgent) {
+  const tokenHash = crypto.randomBytes(32).toString("hex");
+
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await EmailVerification.create({
+    user: user._id,
+    tokenHash,
+    jwtId,
+    expiresAt,
+    ip,
+    userAgent,
+  });
+
+  return token;
+}
+
 export {
   hashToken,
   createJwtId,
@@ -98,4 +116,5 @@ export {
   persistRefreshToken,
   setRefreshCookie,
   rotateRefreshToken,
+  generateEmailVerificationToken,
 };

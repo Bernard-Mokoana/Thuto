@@ -15,7 +15,7 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <div className="min-h-screen bg-white">
           <Navbar />
           <main>

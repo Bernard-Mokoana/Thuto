@@ -92,7 +92,9 @@ async function rotateRefreshToken(oldDoc, user, req, res) {
 }
 
 async function generateEmailVerificationToken(user, jwtId, ip, userAgent) {
-  const tokenHash = crypto.randomBytes(32).toString("hex");
+  const rawToken = crypto.randomBytes(32).toString("hex");
+
+  const tokenHash = hashToken(rawToken);
 
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -105,7 +107,7 @@ async function generateEmailVerificationToken(user, jwtId, ip, userAgent) {
     userAgent,
   });
 
-  return tokenHash;
+  return rawToken;
 }
 
 export {

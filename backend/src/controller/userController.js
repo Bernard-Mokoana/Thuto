@@ -1,11 +1,7 @@
 import { user } from "../model/user.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import { sendEmailVerification } from "../utils/email.util.js";
-import {
-  generateEmailVerificationToken,
-  createJwtId,
-} from "../utils/tokenUtils.js";
+import { sendEmail } from "./AuthController.js";
 
 dotenv.config({
   path: "./.env",
@@ -35,28 +31,31 @@ export const register = async (req, res) => {
       role,
     });
 
-    const userId = newUser._id;
-    const jwtId = createJwtId();
-    const ip = req.ip;
-    const userAgent = req.headers["user-agent"];
-
     try {
-      const verificationToken = generateEmailVerificationToken(
-        userId,
-        jwtId,
-        ip,
-        userAgent
+      const mockReq = {
+        user: newUser,
+        ip: req.ip,
+        headers: req.headers,
+      };
+      await sendEmail(mockReq, null);
+    } catch (emailError) {
+      console.error(
+        "Failed to send verification email, rolling back user creation:",
+        emailError
       );
-      await sendEmailVerification(email, verificationToken);
-    } catch (error) {
-      console.error("Error sending email verification:", error);
+      await user.findByIdAndDelete(newUser._id);
+      return res.status(500).json({
+        message: "Failed to send verification email. User registration failed.",
+      });
     }
 
     return res
       .status(201)
       .json({ message: "User created successfully", data: newUser });
-  } catch (error) {}
-  return res.status(500).json({ message: "Failed to create a user" });
+  } catch (error) {
+    console.error("Failed to create a user:", error);
+    return res.status(500).json({ message: "Failed to create a user" });
+  }
 };
 export const getUserProfileById = async (req, res) => {
   try {

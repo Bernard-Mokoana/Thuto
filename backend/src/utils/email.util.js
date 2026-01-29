@@ -14,10 +14,7 @@ const createEmailTransporter = () => {
       pass: process.env.EMAIL_PASSWORD,
     },
     tls: {
-      rejectUnauthorized:
-        process.env.NODE_ENV === "production"
-          ? false
-          : true && process.env.EMAIL_REJECT_UNAUTHORIZED !== "false",
+      rejectUnauthorized: process.env.NODE_ENV === "production",
     },
   };
 
@@ -28,7 +25,7 @@ export const sendEmailVerification = async (email, token) => {
   try {
     const transporter = createEmailTransporter();
 
-    const verificationUrl = `${process.env.UI_URL}/verify-email?token=${token}`;
+    const verificationUrl = `${process.env.CORS_ORIGIN}/verify-email?token=${token}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -45,7 +42,7 @@ export const sendForgotPasswordEmail = async (email, token) => {
   try {
     const transporter = createEmailTransporter();
 
-    const resetUrl = `${process.env.UI_URL}/verify-email?token=${token}`;
+    const resetUrl = `${process.env.CORS_ORIGIN}/verify-email?token=${token}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,

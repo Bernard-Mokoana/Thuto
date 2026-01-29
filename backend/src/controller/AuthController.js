@@ -9,12 +9,16 @@ import {
   persistRefreshToken,
   setRefreshCookie,
   rotateRefreshToken,
+  generateEmailVerificationToken,
 } from "../utils/tokenUtils.js";
 import RefreshToken from "../model/refreshToken.js";
-import { sendForgotPasswordEmail } from "../utils/email.util.js";
+import EmailVerificationToken from "../model/emailVerificationToken.js";
+import {
+  sendEmailVerification,
+  sendForgotPasswordEmail,
+} from "../utils/email.util.js";
 
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
-
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -79,6 +83,35 @@ export const logout = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const sendEmail = async (req, res) => {
+  const userId = req.user._id;
+  const email = req.user.email;
+  const jwtId = createJwtId();
+  const ip = req.ip;
+  const userAgent = req.headers["user-agent"];
+
+  try {
+    const verificationToken = await generateEmailVerificationToken(
+      userId,
+      jwtId,
+      ip,
+      userAgent
+    );
+    await sendEmailVerification(email, verificationToken);
+    if (res) {
+      return res.status(200).json({ message: "Verification email sent." });
+    }
+  } catch (error) {
+    console.error("Error sending email verification:", error);
+    if (res) {
+      return res
+        .status(500)
+        .json({ message: "Internal server error", error: error.message });
+    }
+    throw error;
   }
 };
 
@@ -182,6 +215,48 @@ export const refresh = async (req, res) => {
     const result = await rotateRefreshToken(doc, doc.user, req, res);
     return res.status(200).json({ accessToken: result.accessToken });
   } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const handleEmailVerification = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
+
+    const tokenHash = hashToken(token);
+
+    const verificationToken = await EmailVerificationToken.findOne({
+      tokenHash,
+    });
+
+    if (!verificationToken) {
+      return res.status(404).json({ message: "Invalid token" });
+    }
+
+    if (verificationToken.expiresAt < new Date()) {
+      return res.status(400).json({ message: "Token has expired" });
+    }
+
+    const User = await user.findById(verificationToken.user);
+
+    if (!User) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    User.isVerified = true;
+    await User.save();
+
+    await EmailVerificationToken.findByIdAndDelete(verificationToken._id);
+
+    return res.status(200).json({ message: "User verified successfully" });
+  } catch (error) {
+    console.error("Error handling email verification:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });

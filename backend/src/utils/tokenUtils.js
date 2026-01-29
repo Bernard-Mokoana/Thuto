@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import RefreshToken from "../model/refreshToken.js";
-import EmailVerification from "../model/emailVerification.js";
+import EmailVerification from "../model/emailVerificationToken.js";
 import dotenv from "dotenv";
 
 dotenv.config({
@@ -105,7 +105,7 @@ async function generateEmailVerificationToken(user, jwtId, ip, userAgent) {
     userAgent,
   });
 
-  return token;
+  return tokenHash;
 }
 
 export {

@@ -1,19 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../services/api";
 
 const EmailVerificationPage = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const [status, setStatus] = useState("verifying"); // verifying, success, error
+  const [status, setStatus] = useState("verifying"); 
   const [message, setMessage] = useState("Verifying your email...");
 
+  const hasRequested = useRef(false);
   useEffect(() => {
     if (!token) {
       setStatus("error");
       setMessage("No verification token found.");
       return;
     }
+
+    if (hasRequested.current) return;
+    hasRequested.current = true;
 
     const verifyEmail = async () => {
       try {

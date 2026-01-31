@@ -42,7 +42,7 @@ export const sendForgotPasswordEmail = async (email, token) => {
   try {
     const transporter = createEmailTransporter();
 
-    const resetUrl = `${process.env.CORS_ORIGIN}/verify-email?token=${token}`;
+    const resetUrl = `${process.env.CORS_ORIGIN}/reset-password?token=${token}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,

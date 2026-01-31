@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import RefreshToken from "../model/refreshToken.js";
 import EmailVerification from "../model/emailVerificationToken.js";
+import resetPasswordToken from "../model/resetPasswordToken.js";
 import dotenv from "dotenv";
 
 dotenv.config({
@@ -110,6 +111,25 @@ async function generateEmailVerificationToken(user, jwtId, ip, userAgent) {
   return rawToken;
 }
 
+async function generateForgotPasswordoken(user, jwtId, ip, userAgent) {
+  const rawToken = crypto.randomBytes(32).toString("hex");
+
+  const tokenHash = hashToken(rawToken);
+
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await resetPasswordToken.create({
+    user: user._id,
+    tokenHash,
+    jwtId,
+    ip,
+    expiresAt,
+    userAgent,
+  });
+
+  return rawToken;
+}
+
 export {
   hashToken,
   createJwtId,
@@ -119,4 +139,5 @@ export {
   setRefreshCookie,
   rotateRefreshToken,
   generateEmailVerificationToken,
+  generateForgotPasswordoken,
 };

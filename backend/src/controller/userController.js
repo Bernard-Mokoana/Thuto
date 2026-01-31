@@ -8,6 +8,7 @@ dotenv.config({
 });
 export const register = async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
+  const imageUrl = req.file ? req.file.location : null;
 
   try {
     if (!firstName || !lastName || !email || !password || !role)
@@ -28,6 +29,7 @@ export const register = async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
+      profileImage: imageUrl,
       role,
     });
 
@@ -59,12 +61,14 @@ export const register = async (req, res) => {
 };
 export const getUserProfileById = async (req, res) => {
   try {
-    const userId = req.user._id || req.params._id;
+    const userId = req.user._id || req.params.userId;
 
     if (!userId) return res.status(404).json({ message: "User not found" });
 
     const User = await user.findById(userId).select("-password");
-    return res.status(200).json({ user: User });
+    return res
+      .status(200)
+      .json({ message: "User fetched successfully", user: User });
   } catch (error) {
     return res
       .status(500)

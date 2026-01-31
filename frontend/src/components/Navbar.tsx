@@ -51,7 +51,20 @@ const Navbar: React.FC = () => {
                 {/* User Dropdown */}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">
-                    <span>{user?.firstName}</span>
+                    {user?.profileImage ? (
+                      <img
+                        src={`${user.profileImage}`}
+                        alt={user.firstName}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <span className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                        {user?.firstName?.charAt(0)}
+                      </span>
+                    )}
+                    <span>
+                      {user?.firstName} {user?.lastName}
+                    </span>
                   </button>
                   
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">

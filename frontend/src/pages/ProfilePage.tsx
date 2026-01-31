@@ -25,7 +25,6 @@ const ProfilePage: React.FC = () => {
 
     try {
       await userAPI.updateUser(user!._id, formData);
-      // Note: In a real app, you'd update the context properly
       setIsEditing(false);
       alert('Profile updated successfully!');
     } catch (error) {

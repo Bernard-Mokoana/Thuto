@@ -57,7 +57,12 @@ export const courseAPI = {
     level?: string;
   }) => api.get("/courses", { params }),
   getCourse: (id: string) => api.get(`/courses/${id}`),
-  createCourse: (courseData: any) => api.post("/courses", courseData),
+  createCourse: (courseData: FormData) =>
+    api.post("/courses", courseData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   updateCourse: (id: string, courseData: any) =>
     api.put(`/courses/${id}`, courseData),
   deleteCourse: (id: string) => api.delete(`/courses/${id}`),

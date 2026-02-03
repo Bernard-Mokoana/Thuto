@@ -3,6 +3,7 @@ import { course } from "../model/course.js";
 
 const createCourse = async (req, res) => {
   const { title, category, description, price } = req.body;
+  const imageUrl = req.file ? req.file.location : null;
 
   if (!title || !category || !description || !price)
     return res.status(400).json({ message: "All fields are required" });
@@ -19,6 +20,7 @@ const createCourse = async (req, res) => {
       category,
       description,
       price,
+      thumbnail: imageUrl,
       tutor: req.user._id,
     });
 

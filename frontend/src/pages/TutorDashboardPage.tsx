@@ -33,14 +33,14 @@ const TutorDashboardPage: React.FC = () => {
       try {
         setLoading(true);
         const coursesResponse = await courseAPI.getCourses();
+        const fetchedCourses = coursesResponse.data.course || [];
+        setCourses(fetchedCourses);
 
-        setCourses(coursesResponse.data.course || []);
-
-        // Calculate stats from courses
-        const totalCourses = courses.length;
-        const publishedCourses = courses.filter(course => course.isPublished).length;
-        const totalStudents = courses.reduce((total, course) => total + (course.enrollmentCount || 0), 0);
-        const totalRevenue = courses.reduce((total, course) => total + (course.revenue || 0), 0);
+        // Calculate stats from the fetched courses
+        const totalCourses = fetchedCourses.length;
+        const publishedCourses = fetchedCourses.filter(course => course.isPublished).length;
+        const totalStudents = fetchedCourses.reduce((total, course) => total + (course.enrollmentCount || 0), 0);
+        const totalRevenue = fetchedCourses.reduce((total, course) => total + (course.revenue || 0), 0);
 
         setStats({
           totalCourses,
@@ -58,7 +58,7 @@ const TutorDashboardPage: React.FC = () => {
     if (user) {
       fetchTutorData();
     }
-  }, [user, courses]);
+  }, [user]);
 
   const handleDeleteCourse = async (courseId: string) => {
     if (window.confirm('Are you sure you want to delete this course?')) {

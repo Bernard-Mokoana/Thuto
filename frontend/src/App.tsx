@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import CreateCoursePage from "./pages/CreateCoursePage";
 
 function App() {
   return (
@@ -30,6 +31,14 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/courses/:id" element={<CourseDetailPage />} />
+              <Route
+                path="/courses/new"
+                element={
+                  <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
+                    <CreateCoursePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/dashboard"
                 element={

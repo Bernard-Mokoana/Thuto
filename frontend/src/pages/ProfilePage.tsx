@@ -61,9 +61,18 @@ const ProfilePage: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="text-center">
                 <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-200">
-                  <span className="text-4xl font-bold text-blue-600">
-                    {user?.firstName[0]}{user?.lastName[0]}
-                  </span>
+
+                {user?.profileImage ? (
+    <img 
+      src={user.profileImage} 
+      className="w-full h-full object-cover" 
+      alt="Profile"
+    />
+  ) : (
+    <span className="text-4xl font-bold text-blue-600">
+      {user?.firstName[0]}{user?.lastName[0]}
+    </span>
+  )}
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800">
                   {user?.firstName} {user?.lastName}

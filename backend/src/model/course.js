@@ -24,17 +24,18 @@ const courseSchema = new Schema(
     tutor: {
       type: Schema.Types.ObjectId,
       ref: "user",
-      required: true,
+      // required: true,
     },
     isPublished: {
       type: Boolean,
       default: false,
     },
     thumbnail: {
-      type: String, // URL to course thumbnail image
+      type: String,
+      default: " ",
     },
     duration: {
-      type: Number, // Total duration in minutes
+      type: Number,
       default: 0,
     },
     level: {
@@ -64,9 +65,8 @@ const courseSchema = new Schema(
   { timestamps: true }
 );
 
-// Indexes for efficient querying
 courseSchema.index({ category: 1, isPublished: 1 });
 courseSchema.index({ tutor: 1, isPublished: 1 });
-courseSchema.index({ title: "text", description: "text" }); // Text search
+courseSchema.index({ title: "text", description: "text" });
 
 export const course = mongoose.model("course", courseSchema);

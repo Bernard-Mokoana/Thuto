@@ -8,7 +8,7 @@ import rateLimit from "express-rate-limit";
 //   createMediaProxy,
 //   createWsProxy,
 // } from "./middleware/proxy.js";
-import helmet from "helmet";
+// import helmet from "helmet";
 
 dotenv.config({
   path: ".env",
@@ -16,7 +16,12 @@ dotenv.config({
 
 const app = express();
 
-app.use(helmet());
+// app.use(
+//   helmet({
+//     crossOriginResourcePolicy: { policy: "cross-origin" },
+//     crossOriginEmbedderPolicy: false,
+//   })
+// );
 
 const proxyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

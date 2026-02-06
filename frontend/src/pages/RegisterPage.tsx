@@ -10,6 +10,7 @@ const RegisterPage: React.FC = () => {
     password: '',
     confirmPassword: '',
     role: 'Student' as 'Student' | 'Tutor' | 'Admin',
+    profileImage: null as File | null,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -24,6 +25,15 @@ const RegisterPage: React.FC = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFormData({
+        ...formData,
+        profileImage: e.target.files[0],
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,13 +54,17 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      await register({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-      });
+      const data = new FormData();
+      data.append('firstName', formData.firstName);
+      data.append('lastName', formData.lastName);
+      data.append('email', formData.email);
+      data.append('password', formData.password);
+      data.append('role', formData.role);
+      if (formData.profileImage) {
+        data.append('profileImage', formData.profileImage);
+      }
+
+      await register(data);
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -152,6 +166,18 @@ const RegisterPage: React.FC = () => {
                 <option value="Student">Student</option>
                 <option value="Tutor">Tutor</option>
               </select>
+            </div>
+            <div>
+              <label htmlFor="profileImage" className="sr-only">
+                Profile Image
+              </label>
+              <input
+                id="profileImage"
+                name="profileImage"
+                type="file"
+                onChange={handleFileChange}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              />
             </div>
 
             <div>

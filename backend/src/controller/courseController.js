@@ -3,6 +3,7 @@ import { course } from "../model/course.js";
 
 const createCourse = async (req, res) => {
   const { title, category, description, price } = req.body;
+  const imageUrl = req.file ? req.file.location : null;
 
   if (!title || !category || !description || !price)
     return res.status(400).json({ message: "All fields are required" });
@@ -19,6 +20,7 @@ const createCourse = async (req, res) => {
       category,
       description,
       price,
+      thumbnail: imageUrl,
       tutor: req.user._id,
     });
 
@@ -36,7 +38,7 @@ const getCourse = async (req, res) => {
   try {
     const courses = await course
       .find({ isPublished: true })
-      .populate("tutor", "firstName", "lastName");
+      .populate("tutor", "firstName lastName");
     return res
       .status(200)
       .json({ message: "courses fetched successfully", course: courses });
@@ -84,6 +86,10 @@ const updateCourse = async (req, res) => {
 
     if (!foundCourse)
       return res.status(404).json({ message: "Courses not found" });
+
+    if (req.file) {
+      foundCourse.thumbnail = req.file.location;
+    }
 
     if (!foundCourse.tutor.equals(req.user._id)) {
       return res

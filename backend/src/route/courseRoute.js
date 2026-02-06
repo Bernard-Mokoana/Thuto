@@ -10,18 +10,23 @@ import {
   verifyJwt,
   tutorOnly,
   studentOnly,
+  tutorOrAdmin,
 } from "../middleware/authMiddleware.js";
+import { upload } from "../utils/s3Config.utils.js";
 
 const router = express.Router();
 
 router.use(verifyJwt);
 
-router.route("/").post(tutorOnly, createCourse).get(getCourse);
+router
+  .route("/")
+  .post(tutorOrAdmin, upload.single("thumbnail"), createCourse)
+  .get(getCourse);
 
 router
   .route("/:id")
   .get(studentOnly, getCourseById)
-  .put(tutorOnly, updateCourse)
+  .put(tutorOnly, updateCourse, upload.single("thumbnail"))
   .delete(tutorOnly, deleteCourse);
 
 export default router;

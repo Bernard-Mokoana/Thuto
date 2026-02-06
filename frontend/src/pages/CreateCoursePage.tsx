@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { courseAPI, categoryAPI } from '../services/api';
+import { toast } from 'react-toastify';
 
 interface Category {
   _id: string;
-  title: string;
+  name: string;
 }
 
 const CreateCoursePage: React.FC = () => {
@@ -19,7 +20,6 @@ const CreateCoursePage: React.FC = () => {
     thumbnail: null as File | null,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -28,6 +28,7 @@ const CreateCoursePage: React.FC = () => {
         setCategories(response.data.categories || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
+        toast.error('Could not fetch categories.');
       }
     };
     fetchCategories();
@@ -53,7 +54,6 @@ const CreateCoursePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const courseData = new FormData();
@@ -67,9 +67,11 @@ const CreateCoursePage: React.FC = () => {
       }
 
       await courseAPI.createCourse(courseData);
+      toast.success('Course created successfully!');
       navigate('/tutor-dashboard');
     } catch (error: any) {
-      setError(error.response?.data?.message || 'An error occurred while creating the course.');
+      const errorMessage = error.response?.data?.message || 'An error occurred while creating the course.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -79,12 +81,6 @@ const CreateCoursePage: React.FC = () => {
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl">
         <h1 className="text-2xl font-bold mb-6">Create a New Course</h1>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

@@ -38,7 +38,7 @@ const getCourse = async (req, res) => {
   try {
     const courses = await course
       .find({ isPublished: true })
-      .populate("tutor", "firstName", "lastName");
+      .populate("tutor", "firstName lastName");
     return res
       .status(200)
       .json({ message: "courses fetched successfully", course: courses });

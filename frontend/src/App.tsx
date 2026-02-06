@@ -14,6 +14,8 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CreateCoursePage from "./pages/CreateCoursePage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -65,6 +67,7 @@ function App() {
               />
             </Routes>
           </main>
+          <ToastContainer />
         </div>
       </Router>
     </AuthProvider>

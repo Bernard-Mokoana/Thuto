@@ -67,7 +67,7 @@ const CreateCoursePage: React.FC = () => {
       }
 
       await courseAPI.createCourse(courseData);
-      navigate('/tutor/dashboard');
+      navigate('/tutor-dashboard');
     } catch (error: any) {
       setError(error.response?.data?.message || 'An error occurred while creating the course.');
     } finally {
@@ -139,7 +139,7 @@ const CreateCoursePage: React.FC = () => {
               >
                 <option value="" disabled>Select a category</option>
                 {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>{cat.title}</option>
+                  <option key={cat._id} value={cat._id}>{cat.name}</option>
                 ))}
               </select>
             </div>

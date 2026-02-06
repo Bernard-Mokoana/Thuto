@@ -87,6 +87,10 @@ const updateCourse = async (req, res) => {
     if (!foundCourse)
       return res.status(404).json({ message: "Courses not found" });
 
+    if (req.file) {
+      foundCourse.thumbnail = req.file.location;
+    }
+
     if (!foundCourse.tutor.equals(req.user._id)) {
       return res
         .status(403)

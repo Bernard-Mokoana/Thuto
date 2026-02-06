@@ -26,7 +26,7 @@ router
 router
   .route("/:id")
   .get(studentOnly, getCourseById)
-  .put(tutorOnly, updateCourse)
+  .put(tutorOnly, updateCourse, upload.single("thumbnail"))
   .delete(tutorOnly, deleteCourse);
 
 export default router;

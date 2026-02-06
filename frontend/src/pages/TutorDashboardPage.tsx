@@ -36,7 +36,6 @@ const TutorDashboardPage: React.FC = () => {
         const fetchedCourses = coursesResponse.data.course || [];
         setCourses(fetchedCourses);
 
-        // Calculate stats from the fetched courses
         const totalCourses = fetchedCourses.length;
         const publishedCourses = fetchedCourses.filter(course => course.isPublished).length;
         const totalStudents = fetchedCourses.reduce((total, course) => total + (course.enrollmentCount || 0), 0);

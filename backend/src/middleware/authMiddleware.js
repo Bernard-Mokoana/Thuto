@@ -53,3 +53,14 @@ export const studentOnly = (req, res, next) => {
 
   next();
 };
+
+export const tutorOrAdmin = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+
+  if (req.user.role !== "Tutor" && req.user.role !== "Admin")
+    return res.status(403).json({
+      message: "Tutor or Admin access required",
+      yourRole: req.user.role,
+    });
+  next();
+};

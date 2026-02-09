@@ -39,15 +39,13 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (credentials: { email: string; password: string }) =>
     api.post("/auth/login", credentials),
-  register: (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role: "Student" | "Tutor" | "Admin";
-  }) => api.post("/users/register", userData),
+  register: (userData: FormData) =>
+    api.post("/users/register", userData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   logout: () => api.post("/auth/logout"),
-  getProfile: () => api.get("/auth/profile"),
 };
 
 export const courseAPI = {
@@ -59,7 +57,12 @@ export const courseAPI = {
     level?: string;
   }) => api.get("/courses", { params }),
   getCourse: (id: string) => api.get(`/courses/${id}`),
-  createCourse: (courseData: any) => api.post("/courses", courseData),
+  createCourse: (courseData: FormData) =>
+    api.post("/courses", courseData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   updateCourse: (id: string, courseData: any) =>
     api.put(`/courses/${id}`, courseData),
   deleteCourse: (id: string) => api.delete(`/courses/${id}`),
@@ -68,6 +71,7 @@ export const courseAPI = {
 export const userAPI = {
   getUsers: () => api.get("/users"),
   getUser: (id: string) => api.get(`/users/${id}`),
+  getProfile: (id: string) => api.get(`/users/profile/${id}`),
   updateUser: (id: string, userData: any) => api.put(`/users/${id}`, userData),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
 };
@@ -81,7 +85,6 @@ export const enrollmentAPI = {
   deleteEnrollment: (id: string) => api.delete(`/enrollments/${id}`),
 };
 
-// Lesson API
 export const lessonAPI = {
   getLessons: (courseId: string) => api.get(`/lessons/course/${courseId}`),
   getLesson: (id: string) => api.get(`/lessons/${id}`),

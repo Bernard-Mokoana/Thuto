@@ -32,6 +32,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    profileImage: {
+      type: String,
+      default: " ",
+    },
     resetPasswordToken: String,
     resetPasswordEXpire: Date,
   },

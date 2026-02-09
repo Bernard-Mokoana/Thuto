@@ -1,27 +1,22 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { authAPI } from '../services/api';
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import { authAPI, userAPI } from "../services/api";
 
 interface User {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: 'Student' | 'Tutor' | 'Admin';
+  role: "Student" | "Tutor" | "Admin";
   isVerified: boolean;
+  profileImage?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role: 'Student' | 'Tutor' | 'Admin';
-  }) => Promise<void>;
+  register: (userData: FormData) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -31,7 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -45,15 +40,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      authAPI.getProfile()
-        .then(response => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (token && storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      userAPI
+        .getProfile(parsedUser._id)
+        .then((response) => {
           setUser(response.data.user);
         })
         .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
         })
         .finally(() => {
           setLoading(false);
@@ -66,29 +65,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await authAPI.login({ email, password });
-      const { token, user: userData } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
+      const { accessToken, user: userData } = response.data;
+
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
     } catch (error) {
       throw error;
     }
   };
 
-  const register = async (userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role: 'Student' | 'Tutor' | 'Admin';
-  }) => {
+  const register = async (userData: FormData) => {
     try {
       const response = await authAPI.register(userData);
       const { token, user: newUser } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(newUser));
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(newUser));
       setUser(newUser);
     } catch (error) {
       throw error;
@@ -96,8 +89,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     authAPI.logout().catch(() => {
       // Ignore logout errors
@@ -115,3 +108,4 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

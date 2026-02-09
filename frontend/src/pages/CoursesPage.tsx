@@ -13,7 +13,7 @@ interface Course {
   category: {
     name: string;
   };
-  tutor: {
+  tutor?: {
     firstName: string;
     lastName: string;
   };
@@ -199,12 +199,15 @@ const CoursesPage = () => {
                       {course.duration} min
                     </div>
                     <div className="text-2xl font-bold text-blue-500">
-                      ${course.price}
+                      R{course.price}
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-500">
-                      by {course.tutor.firstName} {course.tutor.lastName}
+                      by{' '}
+                      {course.tutor
+                        ? `${course.tutor.firstName} ${course.tutor.lastName}`
+                        : 'Unknown Tutor'}
                     </div>
                     <Link
                       to={`/courses/${course._id}`}

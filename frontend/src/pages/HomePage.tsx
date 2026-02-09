@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
               {featuredCourses.map((course) => (
                 <div key={course._id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="h-48 bg-gray-200 flex items-center justify-center">
-                    {course.thumbnail ? (
+                    {course.thumbnail?.trim() ? (
                       <img
                         src={course.thumbnail}
                         alt={course.title}

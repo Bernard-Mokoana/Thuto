@@ -7,9 +7,6 @@ const { S3Client: s3Client } = pkg;
 
 dotenv.config();
 
-console.log("Attempting to connect to Bucket:", process.env.AWS_BUCKET_NAME);
-console.log("In Region:", process.env.AWS_REGION);
-
 const s3 = new s3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -22,6 +19,7 @@ export const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.AWS_BUCKET_NAME,
+    acl: "public-read",
     contentType: multerS3.AUTO_CONTENT_TYPE,
     metadata: (req, file, cb) => {
       cb(null, { fieldName: file.fieldname });

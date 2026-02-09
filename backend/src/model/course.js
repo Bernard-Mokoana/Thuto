@@ -32,7 +32,7 @@ const courseSchema = new Schema(
     },
     thumbnail: {
       type: String,
-      default: " ",
+      default: "",
     },
     duration: {
       type: Number,

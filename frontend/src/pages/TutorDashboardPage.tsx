@@ -133,7 +133,7 @@ const TutorDashboardPage: React.FC = () => {
                 {courses.map((course) => (
                   <div key={course._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all">
                     <div className="h-48 bg-gray-100 flex items-center justify-center">
-                      {course.thumbnail ? (
+                      {course.thumbnail?.trim() ? (
                         <img
                           src={course.thumbnail}
                           alt={course.title}

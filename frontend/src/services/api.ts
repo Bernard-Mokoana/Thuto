@@ -56,6 +56,8 @@ export const courseAPI = {
     search?: string;
     level?: string;
   }) => api.get("/courses", { params }),
+  getTutorCourses: () => api.get("/courses/tutor"),
+  getTutorCourse: (id: string) => api.get(`/courses/tutor/${id}`),
   getCourse: (id: string) => api.get(`/courses/${id}`),
   createCourse: (courseData: FormData) =>
     api.post("/courses", courseData, {
@@ -78,8 +80,10 @@ export const userAPI = {
 
 export const enrollmentAPI = {
   getEnrollments: () => api.get("/enrollments"),
-  createEnrollment: (enrollmentData: { course: string; student: string }) =>
-    api.post("/enrollments", enrollmentData),
+  createEnrollment: (enrollmentData: {
+    courseId: string;
+    userId: string;
+  }) => api.post("/enrollments/enroll", enrollmentData),
   updateEnrollment: (id: string, enrollmentData: any) =>
     api.put(`/enrollments/${id}`, enrollmentData),
   deleteEnrollment: (id: string) => api.delete(`/enrollments/${id}`),
@@ -88,7 +92,12 @@ export const enrollmentAPI = {
 export const lessonAPI = {
   getLessons: (courseId: string) => api.get(`/lessons/course/${courseId}`),
   getLesson: (id: string) => api.get(`/lessons/${id}`),
-  createLesson: (lessonData: any) => api.post("/lessons", lessonData),
+  createLesson: (courseId: string, lessonData: FormData) =>
+    api.post(`/lessons/course/${courseId}`, lessonData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   updateLesson: (id: string, lessonData: any) =>
     api.put(`/lessons/${id}`, lessonData),
   deleteLesson: (id: string) => api.delete(`/lessons/${id}`),

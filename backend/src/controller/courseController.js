@@ -49,6 +49,46 @@ const getCourse = async (req, res) => {
   }
 };
 
+const getTutorCourses = async (req, res) => {
+  try {
+    const courses = await course
+      .find({ tutor: req.user.id })
+      .populate("tutor", "firstName lastName");
+    return res
+      .status(200)
+      .json({ message: "Tutor courses fetched successfully", course: courses });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch tutor courses", error: error.message });
+  }
+};
+
+const getTutorCourseById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ message: "Invalid course ID format" });
+
+    const foundCourse = await course
+      .findOne({ _id: id, tutor: req.user.id })
+      .populate("tutor", "firstName lastName");
+
+    if (!foundCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Course found successfully", course: foundCourse });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch course", error: error.message });
+  }
+};
+
 const getCourseById = async (req, res) => {
   const { id } = req.params;
 
@@ -138,4 +178,12 @@ const deleteCourse = async (req, res) => {
   }
 };
 
-export { createCourse, getCourse, getCourseById, updateCourse, deleteCourse };
+export {
+  createCourse,
+  getCourse,
+  getTutorCourses,
+  getTutorCourseById,
+  getCourseById,
+  updateCourse,
+  deleteCourse,
+};

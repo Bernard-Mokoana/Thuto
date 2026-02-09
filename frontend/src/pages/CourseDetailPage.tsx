@@ -92,8 +92,8 @@ const CourseDetailPage: React.FC = () => {
     try {
       setEnrolling(true);
       await enrollmentAPI.createEnrollment({
-        course: id!,
-        student: user!._id
+        courseId: id!,
+        userId: user!._id
       });
       setIsEnrolled(true);
     } catch (error) {

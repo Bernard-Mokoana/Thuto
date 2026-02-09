@@ -6,23 +6,36 @@ export const createLesson = async (req, res) => {
     const { courseId } = req.params;
     const { title, content, videoUrl, order } = req.body;
 
-    if (!title || !content || !videoUrl || order === undefined)
-      return res.status(400).json({ message: "Course not found" });
+    if (!title || order === undefined)
+      return res.status(400).json({ message: "Title and order are required" });
 
     const existingCourse = await course.findById(courseId);
 
     if (!existingCourse)
       return res.status(404).json({ message: "Course not found" });
 
-    if (existingCourse.tutor.toString() !== req.user._id.toString()) {
+    if (!existingCourse.tutor) {
+      return res
+        .status(400)
+        .json({ message: "Course has no tutor assigned" });
+    }
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    if (existingCourse.tutor.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: "You do not own this course" });
     }
+
+    const uploadedVideo = req.files?.video?.[0]?.location;
+    const uploadedMaterials =
+      req.files?.materials?.map((file) => file.location) || [];
 
     const newLesson = await lessons.create({
       course: courseId,
       title,
       content,
-      videoUrl,
+      videoUrl: uploadedVideo || videoUrl,
+      materials: uploadedMaterials,
       order,
     });
 
@@ -74,14 +87,14 @@ export const updateLesson = async (req, res) => {
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
 
     const Course = await course.findById(lesson.course);
-    if (!Course.tutor.equals(req.user._id)) {
+    if (!Course.tutor.equals(req.user.id)) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
     lesson.title = title ?? lesson.title;
     lesson.content = content ?? lesson.content;
     lesson.videoUrl = videoUrl ?? lesson.videoUrl;
-    lesson.Order = order ?? lesson.Order;
+    lesson.order = order ?? lesson.order;
 
     const updated = await lesson.save();
 
@@ -104,7 +117,7 @@ export const deleteLesson = async (req, res) => {
 
     const Course = await course.findById(lesson.course);
 
-    if (!Course.tutor.equals(req.user._id)) {
+    if (!Course.tutor.equals(req.user.id)) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 

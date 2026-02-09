@@ -3,19 +3,27 @@ import { lessons } from "../model/lessons.js";
 import mongoose from "mongoose";
 
 export const enrollInCourse = async (req, res) => {
-  const { userId, courseId, progress } = req.body;
+  const { userId, courseId, progress, course, student } = req.body;
+  const resolvedUserId = userId || student || req.user?.id;
+  const resolvedCourseId = courseId || course;
 
   try {
-    const Lesson = await lessons.find({ course: courseId });
-    Lesson.map((lesson) => ({
+    if (!resolvedUserId || !resolvedCourseId) {
+      return res
+        .status(400)
+        .json({ message: "userId and courseId are required" });
+    }
+
+    const Lesson = await lessons.find({ course: resolvedCourseId });
+    const defaultProgress = Lesson.map((lesson) => ({
       lesson: lesson._id,
       completed: false,
     }));
 
     const Enrollment = await enrollment.create({
-      student: userId,
-      course: courseId,
-      progress,
+      student: resolvedUserId,
+      course: resolvedCourseId,
+      progress: progress?.length ? progress : defaultProgress,
     });
 
     return res
@@ -31,7 +39,7 @@ export const enrollInCourse = async (req, res) => {
 export const getUserEnrollments = async (req, res) => {
   try {
     const { userId } = req.params;
-    const targetUserId = userId || req.user._id;
+    const targetUserId = userId || req.user?.id;
 
     if (!mongoose.Types.ObjectId.isValid(targetUserId))
       return res.status(400).json({ message: "Invalid userId format" });

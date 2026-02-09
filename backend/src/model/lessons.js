@@ -14,10 +14,15 @@ const lessonSchema = new Schema(
     videoUrl: {
       type: String,
     },
+    materials: [
+      {
+        type: String,
+      },
+    ],
     content: {
       type: String,
     },
-    Order: {
+    order: {
       type: Number,
       default: 1,
     },

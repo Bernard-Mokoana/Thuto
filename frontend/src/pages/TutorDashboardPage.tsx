@@ -32,7 +32,7 @@ const TutorDashboardPage: React.FC = () => {
     const fetchTutorData = async () => {
       try {
         setLoading(true);
-        const coursesResponse = await courseAPI.getCourses();
+        const coursesResponse = await courseAPI.getTutorCourses();
         const fetchedCourses = coursesResponse.data.course || [];
         setCourses(fetchedCourses);
 
@@ -184,6 +184,14 @@ const TutorDashboardPage: React.FC = () => {
                             title="Edit Course"
                           >
                             Edit
+                          </Link>
+                          <Link
+                            to={`/courses/${course._id}/publish`}
+                            className="p-2 text-gray-500 hover:text-green-600 transition-colors"
+                            title="Publish Course"
+                            state={{ course }}
+                          >
+                            Publish
                           </Link>
                           <button
                             onClick={() => handleDeleteCourse(course._id)}

@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { courseAPI, categoryAPI } from '../services/api';
+import { courseAPI, categoryAPI, lessonAPI } from '../services/api';
 import { toast } from 'react-toastify';
 
 interface Category {
   _id: string;
   name: string;
+}
+
+interface LessonDraft {
+  title: string;
+  content: string;
+  order: number;
+  video: File | null;
+  materials: File[];
 }
 
 const CreateCoursePage: React.FC = () => {
@@ -19,6 +27,9 @@ const CreateCoursePage: React.FC = () => {
     level: 'beginner',
     thumbnail: null as File | null,
   });
+  const [lessons, setLessons] = useState<LessonDraft[]>([
+    { title: '', content: '', order: 1, video: null, materials: [] },
+  ]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -51,6 +62,29 @@ const CreateCoursePage: React.FC = () => {
     }
   };
 
+  const handleLessonChange = (
+    index: number,
+    field: keyof LessonDraft,
+    value: string | number | File | File[] | null
+  ) => {
+    setLessons((prev) =>
+      prev.map((lesson, i) =>
+        i === index ? { ...lesson, [field]: value } : lesson
+      )
+    );
+  };
+
+  const addLesson = () => {
+    setLessons((prev) => [
+      ...prev,
+      { title: '', content: '', order: prev.length + 1, video: null, materials: [] },
+    ]);
+  };
+
+  const removeLesson = (index: number) => {
+    setLessons((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -66,9 +100,38 @@ const CreateCoursePage: React.FC = () => {
         courseData.append('thumbnail', formData.thumbnail);
       }
 
-      await courseAPI.createCourse(courseData);
+      const response = await courseAPI.createCourse(courseData);
+      const createdCourse = response.data.course;
+      const courseId = createdCourse?._id;
+
+      if (courseId) {
+        const validLessons = lessons.filter(
+          (lesson) => lesson.title.trim() && lesson.order !== undefined
+        );
+
+        for (const lesson of validLessons) {
+          const lessonData = new FormData();
+          lessonData.append('title', lesson.title);
+          lessonData.append('content', lesson.content);
+          lessonData.append('order', String(lesson.order));
+          if (lesson.video) {
+            lessonData.append('video', lesson.video);
+          }
+          if (lesson.materials.length > 0) {
+            lesson.materials.forEach((file) => lessonData.append('materials', file));
+          }
+          await lessonAPI.createLesson(courseId, lessonData);
+        }
+      }
+
       toast.success('Course created successfully!');
-      navigate('/tutor-dashboard');
+      if (courseId) {
+        navigate(`/courses/${courseId}/publish`, {
+          state: { course: createdCourse },
+        });
+      } else {
+        navigate('/tutor-dashboard');
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'An error occurred while creating the course.';
       toast.error(errorMessage);
@@ -167,6 +230,110 @@ const CreateCoursePage: React.FC = () => {
               accept="image/*"
             />
             <p className="text-xs text-gray-500 mt-1">Upload a course thumbnail image (e.g., JPG, PNG).</p>
+          </div>
+
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold text-gray-800">Lessons</h2>
+              <button
+                type="button"
+                onClick={addLesson}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Add lesson
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {lessons.map((lesson, index) => (
+                <div key={`lesson-${index}`} className="border border-gray-200 rounded-md p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-gray-700">Lesson {index + 1}</p>
+                    {lessons.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeLesson(index)}
+                        className="text-sm text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="block text-gray-700 text-sm font-medium mb-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      value={lesson.title}
+                      onChange={(e) =>
+                        handleLessonChange(index, 'title', e.target.value)
+                      }
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="block text-gray-700 text-sm font-medium mb-1">
+                      Content
+                    </label>
+                    <textarea
+                      value={lesson.content}
+                      onChange={(e) =>
+                        handleLessonChange(index, 'content', e.target.value)
+                      }
+                      rows={3}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-700 text-sm font-medium mb-1">
+                        Video
+                      </label>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) =>
+                          handleLessonChange(
+                            index,
+                            'video',
+                            e.target.files?.[0] || null
+                          )
+                        }
+                        className="w-full text-gray-700"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload lesson video.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 text-sm font-medium mb-1">
+                        Materials (optional)
+                      </label>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(e) =>
+                          handleLessonChange(
+                            index,
+                            'materials',
+                            e.target.files ? Array.from(e.target.files) : []
+                          )
+                        }
+                        className="w-full text-gray-700"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        PDFs, slides, or other resources.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-end">

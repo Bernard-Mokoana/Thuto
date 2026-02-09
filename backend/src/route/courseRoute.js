@@ -1,6 +1,8 @@
 import {
   createCourse,
   getCourse,
+  getTutorCourses,
+  getTutorCourseById,
   getCourseById,
   updateCourse,
   deleteCourse,
@@ -22,6 +24,9 @@ router
   .route("/")
   .post(tutorOrAdmin, upload.single("thumbnail"), createCourse)
   .get(getCourse);
+
+router.route("/tutor").get(tutorOnly, getTutorCourses);
+router.route("/tutor/:id").get(tutorOnly, getTutorCourseById);
 
 router
   .route("/:id")

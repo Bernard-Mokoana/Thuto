@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
+import CoursePublishPage from "./pages/CoursePublishPage";
 import DashboardPage from "./pages/DashboardPage";
 import TutorDashboardPage from "./pages/TutorDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -38,6 +39,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
                     <CreateCoursePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:id/publish"
+                element={
+                  <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
+                    <CoursePublishPage />
                   </ProtectedRoute>
                 }
               />

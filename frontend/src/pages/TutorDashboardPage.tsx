@@ -111,7 +111,7 @@ const TutorDashboardPage: React.FC = () => {
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-            <p className="text-2xl font-bold text-gray-900">${stats.totalRevenue}</p>
+            <p className="text-2xl font-bold text-gray-900">R{stats.totalRevenue}</p>
           </div>
         </div>
 
@@ -166,7 +166,7 @@ const TutorDashboardPage: React.FC = () => {
 
                       <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                         <span>{course.duration} min</span>
-                        <span>${course.price}</span>
+                        <span>R{course.price}</span>
                       </div>
 
                       <div className="flex items-center justify-between">

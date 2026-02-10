@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const progressSchema = new Schema({
   lesson: {
     type: Schema.Types.ObjectId,
-    ref: "lessons",
+    ref: "lesson",
     required: true,
   },
   completed: {

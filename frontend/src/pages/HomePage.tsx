@@ -151,7 +151,7 @@ const HomePage: React.FC = () => {
                         {course.duration} min
                       </div>
                       <div className="text-2xl font-bold text-blue-500">
-                        ${course.price}
+                        R{course.price}
                       </div>
                     </div>
                     <div className="mt-4">

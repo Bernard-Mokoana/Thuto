@@ -21,7 +21,7 @@ const createCourse = async (req, res) => {
       description,
       price,
       thumbnail: imageUrl,
-      tutor: req.user._id,
+      tutor: req.user.id,
     });
 
     return res
@@ -131,7 +131,7 @@ const updateCourse = async (req, res) => {
       foundCourse.thumbnail = req.file.location;
     }
 
-    if (!foundCourse.tutor.equals(req.user._id)) {
+    if (!foundCourse.tutor.equals(req.user.id)) {
       return res
         .status(403)
         .json({ message: "Unauthorized - You only update your own courses" });
@@ -165,7 +165,7 @@ const deleteCourse = async (req, res) => {
     if (!foundCourse)
       return res.status(404).json({ message: "Course not found" });
 
-    if (!foundCourse.tutor.equals(req.user._id)) {
+    if (!foundCourse.tutor.equals(req.user.id)) {
       return res
         .status(403)
         .json({ message: "Unauthorized - You only  delete your courses" });

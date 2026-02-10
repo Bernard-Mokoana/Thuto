@@ -30,7 +30,7 @@ router.route("/tutor/:id").get(tutorOnly, getTutorCourseById);
 
 router
   .route("/:id")
-  .get(studentOnly, getCourseById)
+  .get(getCourseById)
   .put(tutorOnly, upload.single("thumbnail"), updateCourse)
   .delete(tutorOnly, deleteCourse);
 

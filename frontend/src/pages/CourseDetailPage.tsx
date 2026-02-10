@@ -44,6 +44,22 @@ const CourseDetailPage: React.FC = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const hasLessons = lessons.length > 0;
+
+  const getFirstLessonId = () => {
+    if (!hasLessons) return null;
+    const sorted = [...lessons].sort((a, b) => a.order - b.order);
+    return sorted[0]?._id ?? null;
+  };
+
+  const navigateToFirstLesson = () => {
+    const firstLessonId = getFirstLessonId();
+    if (!firstLessonId) {
+      alert('No lessons available yet.');
+      return;
+    }
+    navigate(`/lessons/${firstLessonId}`);
+  };
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -54,8 +70,22 @@ const CourseDetailPage: React.FC = () => {
           lessonAPI.getLessons(id!)
         ]);
         
-        setCourse(courseResponse.data);
-        setLessons(lessonsResponse.data.data || lessonsResponse.data);
+        const courseData = courseResponse.data?.course ?? courseResponse.data;
+        const normalizedCourse = courseData
+          ? {
+              ...courseData,
+              requirements: courseData.requirements ?? [],
+              learningOutcomes: courseData.learningOutcomes ?? [],
+              tags: courseData.tags ?? [],
+            }
+          : null;
+
+        setCourse(normalizedCourse);
+        const lessonsData =
+          lessonsResponse.data?.Lessons ??
+          lessonsResponse.data?.data ??
+          lessonsResponse.data;
+        setLessons(Array.isArray(lessonsData) ? lessonsData : []);
         
         // Check if user is enrolled
         if (isAuthenticated && user) {
@@ -96,6 +126,7 @@ const CourseDetailPage: React.FC = () => {
         userId: user!._id
       });
       setIsEnrolled(true);
+      navigateToFirstLesson();
     } catch (error) {
       console.error('Error enrolling in course:', error);
       alert('Failed to enroll in course. Please try again.');
@@ -152,16 +183,15 @@ const CourseDetailPage: React.FC = () => {
 
               <div className="flex items-center space-x-6 text-sm text-gray-500">
                 <div className="flex items-center">
-                  <span>4.8 (1,234 reviews)</span>
-                </div>
-                <div className="flex items-center">
-                  <span>2,456 students</span>
-                </div>
-                <div className="flex items-center">
-                  <span>{course.duration} minutes</span>
-                </div>
-                <div className="flex items-center">
                   <span>{lessons.length} lessons</span>
+                </div>
+                {course.duration > 0 && (
+                  <div className="flex items-center">
+                    <span>{course.duration} minutes</span>
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <span className="capitalize">{course.level}</span>
                 </div>
               </div>
             </div>
@@ -192,7 +222,7 @@ const CourseDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">What you'll learn</h3>
                       <ul className="space-y-2">
-                        {course.learningOutcomes.map((outcome, index) => (
+                        {course.learningOutcomes?.map((outcome, index) => (
                           <li key={index} className="flex items-start">
                             <span className="text-gray-700">{outcome}</span>
                           </li>
@@ -203,7 +233,7 @@ const CourseDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
                       <ul className="space-y-2">
-                        {course.requirements.map((requirement, index) => (
+                        {course.requirements?.map((requirement, index) => (
                           <li key={index} className="flex items-start">
                             <span className="text-gray-700">{requirement}</span>
                           </li>
@@ -243,7 +273,7 @@ const CourseDetailPage: React.FC = () => {
                             </div>
                             <div>
                               <h4 className="font-medium text-gray-800">{lesson.title}</h4>
-                              <p className="text-sm text-gray-500">{lesson.duration} minutes</p>
+                              <p className="text-sm text-gray-500">Lesson {lesson.order}</p>
                             </div>
                           </div>
                         </div>
@@ -256,12 +286,13 @@ const CourseDetailPage: React.FC = () => {
                   <div className="flex items-start space-x-4">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
                       <span className="text-2xl font-bold text-blue-600">
-                        {course.tutor.firstName[0]}{course.tutor.lastName[0]}
+                        {course.tutor?.firstName?.[0] ?? ""}
+                        {course.tutor?.lastName?.[0] ?? ""}
                       </span>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {course.tutor.firstName} {course.tutor.lastName}
+                        {course.tutor?.firstName} {course.tutor?.lastName}
                       </h3>
                       <p className="text-gray-600 mb-2">Course Instructor</p>
                       <p className="text-gray-700">
@@ -281,7 +312,7 @@ const CourseDetailPage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-blue-600 mb-2">
-                    ${course.price}
+                    R{course.price}
                   </div>
                   <div className="text-sm text-gray-500">One-time payment</div>
                 </div>
@@ -289,8 +320,9 @@ const CourseDetailPage: React.FC = () => {
                 {isEnrolled ? (
                   <div className="space-y-3">
                     <button
-                      onClick={() => navigate('/dashboard')}
-                      className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center"
+                      onClick={navigateToFirstLesson}
+                      disabled={!hasLessons}
+                      className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                     >
                       Continue Learning
                     </button>

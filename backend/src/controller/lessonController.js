@@ -15,9 +15,7 @@ export const createLesson = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
 
     if (!existingCourse.tutor) {
-      return res
-        .status(400)
-        .json({ message: "Course has no tutor assigned" });
+      return res.status(400).json({ message: "Course has no tutor assigned" });
     }
     if (!req.user?.id) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -72,7 +70,7 @@ export const getLessonById = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Lesson fetched successfully" }, lesson);
+      .json({ message: "Lesson fetched successfully", lesson });
   } catch (error) {
     return res.status(500).json({ message: "Error fetching the lessons" });
   }

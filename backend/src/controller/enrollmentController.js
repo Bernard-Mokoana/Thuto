@@ -1,17 +1,49 @@
 import { enrollment } from "../model/enrollment.js";
 import { lessons } from "../model/lessons.js";
+import { course as Course } from "../model/course.js";
 import mongoose from "mongoose";
 
 export const enrollInCourse = async (req, res) => {
-  const { userId, courseId, progress, course, student } = req.body;
-  const resolvedUserId = userId || student || req.user?.id;
-  const resolvedCourseId = courseId || course;
+  const { userId, courseId, progress, course: courseBody, student } = req.body;
+  const resolvedUserId = req.user?.id || userId || student;
+  const resolvedCourseId = courseId || courseBody;
 
   try {
     if (!resolvedUserId || !resolvedCourseId) {
       return res
         .status(400)
         .json({ message: "userId and courseId are required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(resolvedUserId)) {
+      return res.status(400).json({ message: "Invalid userId format" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(resolvedCourseId)) {
+      return res.status(400).json({ message: "Invalid courseId format" });
+    }
+
+    const existingCourse = await Course
+      .findById(resolvedCourseId)
+      .select("_id isPublished tutor");
+
+    if (!existingCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    if (!existingCourse.isPublished) {
+      return res.status(403).json({ message: "Course is not published yet" });
+    }
+
+    const existingEnrollment = await enrollment.findOne({
+      student: resolvedUserId,
+      course: resolvedCourseId,
+    });
+
+    if (existingEnrollment) {
+      return res
+        .status(409)
+        .json({ message: "Already enrolled in this course" });
     }
 
     const Lesson = await lessons.find({ course: resolvedCourseId });
@@ -30,6 +62,12 @@ export const enrollInCourse = async (req, res) => {
       .status(201)
       .json({ message: "Student enrolled successfully", Enrollment });
   } catch (error) {
+    if (error?.code === 11000) {
+      return res
+        .status(409)
+        .json({ message: "Already enrolled in this course" });
+    }
+
     return res
       .status(500)
       .json({ message: "Error enrolling a student", error: error.message });

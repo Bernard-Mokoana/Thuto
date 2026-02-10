@@ -8,6 +8,7 @@ import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import CoursePublishPage from "./pages/CoursePublishPage";
 import DashboardPage from "./pages/DashboardPage";
+import LessonPage from "./pages/LessonPage";
 import TutorDashboardPage from "./pages/TutorDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -34,6 +35,14 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/courses/:id" element={<CourseDetailPage />} />
+              <Route
+                path="/lessons/:id"
+                element={
+                  <ProtectedRoute>
+                    <LessonPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/courses/new"
                 element={

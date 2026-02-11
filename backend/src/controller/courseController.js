@@ -116,7 +116,7 @@ const getCourseById = async (req, res) => {
 
 const updateCourse = async (req, res) => {
   const { id } = req.params;
-  const { title, category, description, price, isPublished } = req.body;
+  const { title, category, description, price, level, isPublished } = req.body;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(id))
@@ -141,6 +141,7 @@ const updateCourse = async (req, res) => {
     if (category !== undefined) foundCourse.category = category;
     if (description !== undefined) foundCourse.description = description;
     if (price !== undefined) foundCourse.price = price;
+    if (level !== undefined) foundCourse.level = level;
     if (isPublished !== undefined) foundCourse.isPublished = isPublished;
 
     const updateCourse = await foundCourse.save();

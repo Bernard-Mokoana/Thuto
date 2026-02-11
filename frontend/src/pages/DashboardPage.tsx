@@ -41,7 +41,6 @@ const DashboardPage: React.FC = () => {
         const userEnrollments = response.data.enrollments || [];
         setEnrollments(userEnrollments);
 
-        // Calculate stats
         const totalCourses = userEnrollments.length;
         const completedCourses = userEnrollments.filter((enrollment: Enrollment) => 
           enrollment.certificateUrl

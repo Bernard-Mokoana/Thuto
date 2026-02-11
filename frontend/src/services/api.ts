@@ -66,7 +66,15 @@ export const courseAPI = {
       },
     }),
   updateCourse: (id: string, courseData: any) =>
-    api.put(`/courses/${id}`, courseData),
+    api.put(`/courses/${id}`, courseData, {
+      ...(courseData instanceof FormData
+        ? {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        : {}),
+    }),
   deleteCourse: (id: string) => api.delete(`/courses/${id}`),
 };
 

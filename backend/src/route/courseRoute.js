@@ -18,20 +18,20 @@ import { upload } from "../utils/s3Config.utils.js";
 
 const router = express.Router();
 
-router.use(verifyJwt);
-
 router
   .route("/")
-  .post(tutorOrAdmin, upload.single("thumbnail"), createCourse)
-  .get(getCourse);
+  .get(getCourse)
+  .post(verifyJwt, tutorOrAdmin, upload.single("thumbnail"), createCourse);
 
-router.route("/tutor").get(tutorOnly, getTutorCourses);
-router.route("/tutor/:id").get(tutorOnly, getTutorCourseById);
+router.route("/tutor").get(verifyJwt, tutorOnly, getTutorCourses);
+router
+  .route("/tutor/:id")
+  .get(verifyJwt, tutorOnly, getTutorCourseById);
 
 router
   .route("/:id")
   .get(getCourseById)
-  .put(tutorOnly, upload.single("thumbnail"), updateCourse)
-  .delete(tutorOnly, deleteCourse);
+  .put(verifyJwt, tutorOnly, upload.single("thumbnail"), updateCourse)
+  .delete(verifyJwt, tutorOnly, deleteCourse);
 
 export default router;

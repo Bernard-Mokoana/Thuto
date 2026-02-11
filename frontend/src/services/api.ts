@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
+});                                           
 
 api.interceptors.request.use(
   (config) => {
@@ -74,7 +74,12 @@ export const userAPI = {
   getUsers: () => api.get("/users"),
   getUser: (id: string) => api.get(`/users/${id}`),
   getProfile: (id: string) => api.get(`/users/profile/${id}`),
-  updateUser: (id: string, userData: any) => api.put(`/users/${id}`, userData),
+  updateUser: (id: string, userData: any) =>
+    api.put(`/users/profile/${id}`, userData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
 };
 

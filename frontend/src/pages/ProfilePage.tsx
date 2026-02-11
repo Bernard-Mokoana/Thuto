@@ -10,21 +10,37 @@ const ProfilePage: React.FC = () => {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
+    profileImage: user?.profileImage || '',
   });
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === 'profileImage') {
+      if (e.target.files) {
+        setProfileImageFile(e.target.files[0]);
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    const data = new FormData();
+    data.append('firstName', formData.firstName);
+    data.append('lastName', formData.lastName);
+    data.append('email', formData.email);
+    if (profileImageFile) {
+      data.append('profileImage', profileImageFile);
+    }
+
     try {
-      await userAPI.updateUser(user!._id, formData);
+      await userAPI.updateUser(user!._id, data);
       setIsEditing(false);
       alert('Profile updated successfully!');
     } catch (error) {
@@ -40,7 +56,9 @@ const ProfilePage: React.FC = () => {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
+      profileImage: user?.profileImage || '',
     });
+    setProfileImageFile(null);
     setIsEditing(false);
   };
 
@@ -108,6 +126,20 @@ const ProfilePage: React.FC = () => {
 
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {isEditing && (
+                    <div className="md:col-span-2">
+                      <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-2">
+                        Profile Image
+                      </label>
+                      <input
+                        type="file"
+                        id="profileImage"
+                        name="profileImage"
+                        onChange={handleChange}
+                        className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                      />
+                    </div>
+                  )}
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                       First Name

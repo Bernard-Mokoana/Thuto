@@ -14,7 +14,10 @@ router.post("/register", upload.single("profileImage"), register);
 
 router.use(verifyJwt);
 
-router.route("/profile/:userId").get(getUserProfile).put(updateUserProfile);
+router
+  .route("/profile/:userId")
+  .get(getUserProfile)
+  .put(upload.single("profileImage"), updateUserProfile);
 router.get("/", getAllUsers);
 
 export default router;

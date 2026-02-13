@@ -1,4 +1,4 @@
-# 🎓 MERN Stack Education Platform
+# Thuto - MERN Stack Education Platform
 
 A full-stack, Online learning platform built with the MERN stack (MongoDB, Express.js, React, Node.js). This project powers user authentication, course creation and enrollment, lesson management, progress tracking, and certificate generation.
 
@@ -135,3 +135,4 @@ The backend API is tested using Jest and Supertest. To run the test suite:
    ```bash
    npm test
    ```
+

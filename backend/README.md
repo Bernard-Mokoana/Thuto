@@ -1,4 +1,4 @@
-# EduConnectSa Backend API
+# Thuto Backend API
 
 A comprehensive Node.js backend API for an online education platform built with Express.js and MongoDB. This backend provides robust functionality for course management, user authentication, enrollment tracking, assessment submissions, and financial transactions.
 
@@ -242,6 +242,7 @@ The testing framework provides:
 - **Integration Testing**: End-to-end workflow validation
 - **Performance Testing**: Database operation efficiency
 
-This robust testing infrastructure ensures the reliability, maintainability, and scalability of the EduConnectSa backend API, providing confidence in production deployments and continuous integration workflows.
+This robust testing infrastructure ensures the reliability, maintainability, and scalability of the Thuto backend API, providing confidence in production deployments and continuous integration workflows.
+
 
 

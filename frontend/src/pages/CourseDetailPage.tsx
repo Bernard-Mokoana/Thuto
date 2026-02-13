@@ -2,37 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  level: string;
-  duration: number;
-  thumbnail?: string;
-  category: {
-    name: string;
-  };
-  tutor: {
-    firstName: string;
-    lastName: string;
-    _id: string;
-  };
-  isPublished: boolean;
-  requirements: string[];
-  learningOutcomes: string[];
-  tags: string[];
-}
-
-interface Lesson {
-  _id: string;
-  title: string;
-  content: string;
-  videoUrl?: string;
-  order: number;
-  duration?: number;
-}
+import type { Course, Lesson } from '../types/models';
 
 const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

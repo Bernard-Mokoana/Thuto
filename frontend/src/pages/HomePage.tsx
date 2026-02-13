@@ -1,31 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { categoryAPI, courseAPI } from "../services/api";
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  level: string;
-  duration: number;
-  thumbnail?: string;
-  category: {
-    name: string;
-  };
-  tutor: {
-    firstName: string;
-    lastName: string;
-    _id?: string;
-  };
-  isPublished: boolean;
-  createdAt?: string;
-}
-
-interface Category {
-  _id: string;
-  name: string;
-}
+import type { Category, Course } from "../types/models";
 
 const HomePage: React.FC = () => {
   const [allCourses, setAllCourses] = useState<Course[]>([]);

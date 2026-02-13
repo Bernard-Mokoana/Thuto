@@ -2,16 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { authAPI, userAPI } from "../services/api";
 import { toast } from "react-toastify";
-
-interface User {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: "Student" | "Tutor" | "Admin";
-  isVerified: boolean;
-  profileImage?: string;
-}
+import type { User } from "../types/models";
 
 interface AuthContextType {
   user: User | null;

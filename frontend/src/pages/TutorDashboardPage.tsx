@@ -2,20 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { courseAPI } from '../services/api';
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  level: string;
-  duration: number;
-  thumbnail?: string;
-  isPublished: boolean;
-  createdAt: string;
-  enrollmentCount?: number;
-  revenue?: number;
-}
+import type { Course } from '../types/models';
 
 const TutorDashboardPage: React.FC = () => {
   const { user } = useAuth();

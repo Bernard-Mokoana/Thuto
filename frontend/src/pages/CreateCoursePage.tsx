@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { courseAPI, categoryAPI, lessonAPI } from '../services/api';
 import { toast } from 'react-toastify';
-
-interface Category {
-  _id: string;
-  name: string;
-}
+import type { Category } from '../types/models';
 
 interface LessonDraft {
   title: string;

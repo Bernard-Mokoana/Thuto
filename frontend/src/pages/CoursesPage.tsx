@@ -1,29 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { courseAPI, categoryAPI } from '../services/api';
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  level: string;
-  duration: number;
-  thumbnail?: string;
-  category: {
-    name: string;
-  };
-  tutor?: {
-    firstName: string;
-    lastName: string;
-  };
-  isPublished: boolean;
-}
-
-interface Category {
-  _id: string;
-  name: string;
-}
+import type { Category, Course } from '../types/models';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState<Course[]>([]);

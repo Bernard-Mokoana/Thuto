@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { lessonAPI } from "../services/api";
-
-interface Lesson {
-  _id: string;
-  title: string;
-  content: string;
-  videoUrl?: string;
-  order: number;
-  duration?: number;
-}
+import type { Lesson } from "../types/models";
 
 const LessonPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

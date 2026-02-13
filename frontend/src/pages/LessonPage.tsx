@@ -8,7 +8,7 @@ interface Lesson {
   content: string;
   videoUrl?: string;
   order: number;
-  duration: number;
+  duration?: number;
 }
 
 const LessonPage: React.FC = () => {
@@ -36,6 +36,13 @@ const LessonPage: React.FC = () => {
       fetchLesson();
     }
   }, [id]);
+
+  const formatDuration = (totalSeconds?: number) => {
+    if (!totalSeconds || totalSeconds <= 0) return '0:00';
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+  };
 
   if (loading) {
     return (
@@ -69,6 +76,9 @@ const LessonPage: React.FC = () => {
             <div>
               <p className="text-sm text-gray-500">Lesson {lesson.order}</p>
               <h1 className="text-3xl font-bold text-gray-900 mt-1">{lesson.title}</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Video duration: {formatDuration(lesson.duration)}
+              </p>
             </div>
             <button
               onClick={() => navigate(-1)}

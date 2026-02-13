@@ -13,6 +13,7 @@ interface LessonDraft {
   content: string;
   order: number;
   video: File | null;
+  duration: number;
   materials: File[];
 }
 
@@ -28,7 +29,7 @@ const CreateCoursePage: React.FC = () => {
     thumbnail: null as File | null,
   });
   const [lessons, setLessons] = useState<LessonDraft[]>([
-    { title: '', content: '', order: 1, video: null, materials: [] },
+    { title: '', content: '', order: 1, video: null, duration: 0, materials: [] },
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -77,13 +78,45 @@ const CreateCoursePage: React.FC = () => {
   const addLesson = () => {
     setLessons((prev) => [
       ...prev,
-      { title: '', content: '', order: prev.length + 1, video: null, materials: [] },
+      { title: '', content: '', order: prev.length + 1, video: null, duration: 0, materials: [] },
     ]);
   };
 
   const removeLesson = (index: number) => {
     setLessons((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const formatDuration = (totalSeconds: number) => {
+    if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+      return '0:00';
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  };
+
+  const getVideoDuration = (file: File): Promise<number> =>
+    new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      const objectUrl = URL.createObjectURL(file);
+
+      const cleanup = () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+
+      video.onloadedmetadata = () => {
+        resolve(Math.max(0, Math.round(video.duration)));
+        cleanup();
+      };
+
+      video.onerror = () => {
+        resolve(0);
+        cleanup();
+      };
+
+      video.src = objectUrl;
+    });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -114,6 +147,7 @@ const CreateCoursePage: React.FC = () => {
           lessonData.append('title', lesson.title);
           lessonData.append('content', lesson.content);
           lessonData.append('order', String(lesson.order));
+          lessonData.append('duration', String(lesson.duration || 0));
           if (lesson.video) {
             lessonData.append('video', lesson.video);
           }
@@ -296,17 +330,22 @@ const CreateCoursePage: React.FC = () => {
                       <input
                         type="file"
                         accept="video/*"
-                        onChange={(e) =>
-                          handleLessonChange(
-                            index,
-                            'video',
-                            e.target.files?.[0] || null
-                          )
-                        }
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0] || null;
+                          const duration = file ? await getVideoDuration(file) : 0;
+                          setLessons((prev) =>
+                            prev.map((item, i) =>
+                              i === index ? { ...item, video: file, duration } : item
+                            )
+                          );
+                        }}
                         className="w-full text-gray-700"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Upload lesson video.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Duration: {formatDuration(lesson.duration)}
                       </p>
                     </div>
 

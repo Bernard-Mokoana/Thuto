@@ -31,7 +31,7 @@ interface Lesson {
   content: string;
   videoUrl?: string;
   order: number;
-  duration: number;
+  duration?: number;
 }
 
 const CourseDetailPage: React.FC = () => {
@@ -44,6 +44,7 @@ const CourseDetailPage: React.FC = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const isStudent = user?.role === 'Student';
   const hasLessons = lessons.length > 0;
 
   const getFirstLessonId = () => {
@@ -59,6 +60,13 @@ const CourseDetailPage: React.FC = () => {
       return;
     }
     navigate(`/lessons/${firstLessonId}`);
+  };
+
+  const formatDuration = (totalSeconds?: number) => {
+    if (!totalSeconds || totalSeconds <= 0) return '0:00';
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
   };
 
   useEffect(() => {
@@ -88,7 +96,7 @@ const CourseDetailPage: React.FC = () => {
         setLessons(Array.isArray(lessonsData) ? lessonsData : []);
         
         // Check if user is enrolled
-        if (isAuthenticated && user) {
+        if (isAuthenticated && user && isStudent) {
           try {
             const enrollmentsResponse = await enrollmentAPI.getEnrollments();
             const userEnrollments = enrollmentsResponse.data.enrollments || [];
@@ -111,11 +119,15 @@ const CourseDetailPage: React.FC = () => {
     if (id) {
       fetchCourseData();
     }
-  }, [id, isAuthenticated, user, navigate]);
+  }, [id, isAuthenticated, user, isStudent, navigate]);
 
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       navigate('/login');
+      return;
+    }
+    if (!isStudent) {
+      alert('Tutors and admins can instruct only. Student enrollment is not available for this account.');
       return;
     }
 
@@ -273,7 +285,9 @@ const CourseDetailPage: React.FC = () => {
                             </div>
                             <div>
                               <h4 className="font-medium text-gray-800">{lesson.title}</h4>
-                              <p className="text-sm text-gray-500">Lesson {lesson.order}</p>
+                              <p className="text-sm text-gray-500">
+                                Lesson {lesson.order} • {formatDuration(lesson.duration)}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -317,31 +331,37 @@ const CourseDetailPage: React.FC = () => {
                   <div className="text-sm text-gray-500">One-time payment</div>
                 </div>
 
-                {isEnrolled ? (
-                  <div className="space-y-3">
+                {isStudent ? (
+                  isEnrolled ? (
+                    <div className="space-y-3">
+                      <button
+                        onClick={navigateToFirstLesson}
+                        disabled={!hasLessons}
+                        className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        Continue Learning
+                      </button>
+                      <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                        Download Certificate
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      onClick={navigateToFirstLesson}
-                      disabled={!hasLessons}
-                      className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      onClick={handleEnroll}
+                      disabled={enrolling}
+                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center"
                     >
-                      Continue Learning
+                      {enrolling ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      ) : (
+                        'Enroll Now'
+                      )}
                     </button>
-                    <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                      Download Certificate
-                    </button>
-                  </div>
+                  )
                 ) : (
-                  <button
-                    onClick={handleEnroll}
-                    disabled={enrolling}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center"
-                  >
-                    {enrolling ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    ) : (
-                      'Enroll Now'
-                    )}
-                  </button>
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Tutors and admins can instruct only. Switch to a student account to enroll and learn.
+                  </div>
                 )}
 
                 <div className="mt-6 pt-6 border-t border-gray-200">

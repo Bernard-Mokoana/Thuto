@@ -4,7 +4,7 @@ import { course } from "../model/course.js";
 export const createLesson = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { title, content, videoUrl, order } = req.body;
+    const { title, content, videoUrl, order, duration } = req.body;
 
     if (!title || order === undefined)
       return res.status(400).json({ message: "Title and order are required" });
@@ -35,6 +35,7 @@ export const createLesson = async (req, res) => {
       videoUrl: uploadedVideo || videoUrl,
       materials: uploadedMaterials,
       order,
+      duration: Number(duration) || 0,
     });
 
     return res
@@ -79,7 +80,7 @@ export const getLessonById = async (req, res) => {
 export const updateLesson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, videoUrl, order } = req.body;
+    const { title, content, videoUrl, order, duration } = req.body;
 
     const lesson = await lessons.findById(id);
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
@@ -93,6 +94,9 @@ export const updateLesson = async (req, res) => {
     lesson.content = content ?? lesson.content;
     lesson.videoUrl = videoUrl ?? lesson.videoUrl;
     lesson.order = order ?? lesson.order;
+    if (duration !== undefined) {
+      lesson.duration = Number(duration) || 0;
+    }
 
     const updated = await lesson.save();
 

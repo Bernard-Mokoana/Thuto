@@ -28,7 +28,19 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(formData.email, formData.password);
-      navigate('/');
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const role = user?.role;
+
+      if (role === 'Student') {
+        navigate('/dashboard');
+      } else if (role === 'Tutor') {
+        navigate('/tutor-dashboard');
+      } else if (role === 'Admin') {
+        navigate('/tutor-dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

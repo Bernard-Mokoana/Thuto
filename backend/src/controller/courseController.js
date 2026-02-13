@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { course } from "../model/course.js";
+import { enrollment } from "../model/enrollment.js";
 
 const createCourse = async (req, res) => {
   const { title, category, description, price } = req.body;
@@ -53,10 +54,44 @@ const getTutorCourses = async (req, res) => {
   try {
     const courses = await course
       .find({ tutor: req.user.id })
-      .populate("tutor", "firstName lastName");
-    return res
-      .status(200)
-      .json({ message: "Tutor courses fetched successfully", course: courses });
+      .populate("tutor", "firstName lastName")
+      .lean();
+
+    const courseIds = courses.map((singleCourse) => singleCourse._id);
+
+    let enrollmentMap = new Map();
+
+    console.log(enrollmentMap);
+
+    if (courseIds.length > 0) {
+      const enrollmentCounts = await enrollment.aggregate([
+        {
+          $match: {
+            course: { $in: courseIds },
+          },
+        },
+        {
+          $group: {
+            _id: "$course",
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      enrollmentMap = new Map(
+        enrollmentCounts.map((item) => [item._id.toString(), item.count])
+      );
+    }
+
+    const coursesWithEnrollmentCount = courses.map((singleCourse) => ({
+      ...singleCourse,
+      enrollmentCount: enrollmentMap.get(singleCourse._id.toString()) || 0,
+    }));
+
+    return res.status(200).json({
+      message: "Tutor courses fetched successfully",
+      course: coursesWithEnrollmentCount,
+    });
   } catch (error) {
     return res
       .status(500)

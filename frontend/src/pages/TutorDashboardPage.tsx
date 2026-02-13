@@ -117,22 +117,22 @@ const TutorDashboardPage: React.FC = () => {
 
         {/* Courses Section */}
         <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
             <Link
               to="/courses/new"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md inline-flex items-center text-sm hover:bg-blue-600"
+              className="bg-blue-500 text-white px-4 py-2 rounded-md inline-flex items-center justify-center text-sm hover:bg-blue-600 w-full sm:w-auto"
             >
               Create Course
             </Link>
           </div>
           
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {courses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {courses.map((course) => (
-                  <div key={course._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all">
-                    <div className="h-48 bg-gray-100 flex items-center justify-center">
+                  <div key={course._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all h-full flex flex-col">
+                    <div className="h-44 sm:h-48 bg-gray-100 flex items-center justify-center">
                       {course.thumbnail?.trim() ? (
                         <img
                           src={course.thumbnail}
@@ -144,8 +144,8 @@ const TutorDashboardPage: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="p-4 flex flex-col flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           course.isPublished
                             ? 'bg-green-100 text-green-800'
@@ -153,41 +153,41 @@ const TutorDashboardPage: React.FC = () => {
                         }`}>
                           {course.isPublished ? 'Published' : 'Draft'}
                         </span>
-                        <span className="text-sm text-gray-500">{course.level}</span>
+                        <span className="text-sm text-gray-500 capitalize">{course.level}</span>
                       </div>
 
                       <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
                         {course.title}
                       </h3>
 
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2 sm:line-clamp-3">
                         {course.description}
                       </p>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center justify-between gap-3 text-sm text-gray-500 mb-4">
                         <span>{course.duration} min</span>
                         <span>R{course.price}</span>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex space-x-2">
+                      <div className="mt-auto">
+                        <div className="flex flex-wrap gap-2">
                           <Link
                             to={`/courses/${course._id}`}
-                            className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
                             title="View Course"
                           >
                             View
                           </Link>
                           <Link
                             to={`/courses/${course._id}/edit`}
-                            className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                             title="Edit Course"
                           >
                             Edit
                           </Link>
                           <Link
                             to={`/courses/${course._id}/publish`}
-                            className="p-2 text-gray-500 hover:text-green-600 transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
                             title="Publish Course"
                             state={{ course }}
                           >
@@ -195,14 +195,14 @@ const TutorDashboardPage: React.FC = () => {
                           </Link>
                           <button
                             onClick={() => handleDeleteCourse(course._id)}
-                            className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
                             title="Delete Course"
                           >
                             Delete
                           </button>
                         </div>
 
-                        <div className="text-sm text-gray-500">
+                        <div className="mt-3 text-sm text-gray-500">
                           {course.enrollmentCount || 0} students
                         </div>
                       </div>

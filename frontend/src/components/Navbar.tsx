@@ -36,19 +36,19 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+      <nav className="sticky top-0 z-50 border-b border-slate-700/70 bg-slate-900/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to={getLogoDestination()} className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-gray-800">Thuto</span>
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/30 text-sm font-bold text-indigo-100">
+              T
+            </span>
+            <span className="text-xl font-bold text-slate-100">Thuto</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link
               to="/courses"
-              className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+              className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
             >
               Courses
             </Link>
@@ -58,7 +58,7 @@ const Navbar: React.FC = () => {
                 {isStudent ? (
                   <Link
                     to="/dashboard"
-                    className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                   >
                     Dashboard
                   </Link>
@@ -67,23 +67,22 @@ const Navbar: React.FC = () => {
                 {isInstructor ? (
                   <Link
                     to="/tutor-dashboard"
-                    className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                   >
                     Teach
                   </Link>
                 ) : null}
 
-                {/* User Dropdown */}
                 <div className="relative group">
-                  <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">
+                  <button className="flex items-center space-x-2 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-indigo-400/50 hover:text-white">
                     {user?.profileImage ? (
                       <img
                         src={`${user.profileImage}`}
                         alt={user.firstName}
-                        className="w-8 h-8 rounded-full"
+                        className="h-8 w-8 rounded-full border border-slate-600 object-cover"
                       />
                     ) : (
-                      <span className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/30 text-indigo-200">
                         {user?.firstName?.charAt(0)}
                       </span>
                     )}
@@ -92,16 +91,16 @@ const Navbar: React.FC = () => {
                     </span>
                   </button>
                   
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                  <div className="invisible absolute right-0 z-50 mt-2 w-48 rounded-xl border border-slate-700 bg-slate-800 py-1 opacity-0 shadow-lg transition-all duration-300 group-hover:visible group-hover:opacity-100">
                     <Link
                       to="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/80"
                     >
                       Profile
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex w-full items-center px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/80"
                     >
                       Logout
                     </button>
@@ -112,13 +111,13 @@ const Navbar: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600"
+                  className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_18px_rgba(99,102,241,0.45)] transition hover:bg-indigo-400"
                 >
                   Sign Up
                 </Link>
@@ -126,11 +125,10 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 hover:text-blue-500 p-2"
+              className="rounded-md p-2 text-slate-300 hover:text-white"
             >
               {isMenuOpen ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,13 +143,12 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <div className="border-t border-slate-700/70 bg-slate-900 md:hidden">
+            <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
               <Link
                 to="/courses"
-                className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Courses
@@ -162,7 +159,7 @@ const Navbar: React.FC = () => {
                   {isStudent ? (
                     <Link
                       to="/dashboard"
-                      className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                      className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Dashboard
@@ -172,7 +169,7 @@ const Navbar: React.FC = () => {
                   {isInstructor ? (
                     <Link
                       to="/tutor-dashboard"
-                      className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                      className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Teach
@@ -181,7 +178,7 @@ const Navbar: React.FC = () => {
 
                   <Link
                     to="/profile"
-                    className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                    className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Profile
@@ -192,7 +189,7 @@ const Navbar: React.FC = () => {
                       handleLogout();
                       setIsMenuOpen(false);
                     }}
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                    className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                   >
                     Logout
                   </button>
@@ -201,14 +198,14 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/login"
-                    className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                    className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                    className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign Up
@@ -218,7 +215,6 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         )}
-        </div>
       </nav>
 
       {isLogoutModalOpen && (

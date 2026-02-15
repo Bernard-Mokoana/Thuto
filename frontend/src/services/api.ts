@@ -55,6 +55,7 @@ export const courseAPI = {
     category?: string;
     search?: string;
     level?: string;
+    sortBy?: string;
   }) => api.get("/courses", { params }),
   getTutorCourses: () => api.get("/courses/tutor"),
   getTutorCourse: (id: string) => api.get(`/courses/tutor/${id}`),

@@ -36,10 +36,45 @@ const createCourse = async (req, res) => {
 };
 
 const getCourse = async (req, res) => {
+  const { search, level, category, sortBy } = req.query;
+
   try {
+    const query = { isPublished: true };
+
+    if (search?.trim()) {
+      query.$or = [
+        { title: { $regex: search.trim(), $options: "i" } },
+        { description: { $regex: search.trim(), $options: "i" } },
+      ];
+    }
+
+    if (level) {
+      query.level = level;
+    }
+
+    if (category) {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({ message: "Invalid category format" });
+      }
+      query.category = category;
+    }
+
+    const sortMap = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      "price-low": { price: 1 },
+      "price-high": { price: -1 },
+      duration: { duration: 1 },
+    };
+
+    const sortOption = sortMap[sortBy] || sortMap.newest;
+
     const courses = await course
-      .find({ isPublished: true })
-      .populate("tutor", "firstName lastName");
+      .find(query)
+      .populate("tutor", "firstName lastName")
+      .populate("category", "name")
+      .sort(sortOption);
+
     return res
       .status(200)
       .json({ message: "courses fetched successfully", course: courses });

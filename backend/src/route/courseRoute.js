@@ -11,7 +11,6 @@ import express from "express";
 import {
   verifyJwt,
   tutorOnly,
-  studentOnly,
   tutorOrAdmin,
 } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/s3Config.utils.js";
@@ -24,9 +23,7 @@ router
   .post(verifyJwt, tutorOrAdmin, upload.single("thumbnail"), createCourse);
 
 router.route("/tutor").get(verifyJwt, tutorOnly, getTutorCourses);
-router
-  .route("/tutor/:id")
-  .get(verifyJwt, tutorOnly, getTutorCourseById);
+router.route("/tutor/:id").get(verifyJwt, tutorOnly, getTutorCourseById);
 
 router
   .route("/:id")

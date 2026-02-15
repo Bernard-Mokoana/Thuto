@@ -20,6 +20,7 @@ const CoursesPage = () => {
           search: searchTerm || undefined,
           level: selectedLevel || undefined,
           category: selectedCategory || undefined,
+          sortBy,
         };
         
         const response = await courseAPI.getCourses(params);
@@ -32,7 +33,7 @@ const CoursesPage = () => {
     };
 
     fetchCourses();
-  }, [searchTerm, selectedLevel, selectedCategory]);
+  }, [searchTerm, selectedLevel, selectedCategory, sortBy]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -47,7 +48,7 @@ const CoursesPage = () => {
     fetchCategories();
   }, []);
 
-  const filteredCourses = courses.filter(course => course.isPublished);
+  const filteredCourses = courses;
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -33,22 +33,23 @@ A full-stack, Online learning platform built with the MERN stack (MongoDB, Expre
 
 ### Backend
 
-| Category      | Technology                               |
-|---------------|------------------------------------------|
-| Runtime       | Node.js                                  |
-| Framework     | Express.js                               |
-| Database      | MongoDB with Mongoose                    |
-| Authentication| JWT (jsonwebtoken) & `cookie-parser`     |
-| Testing       | Jest & Supertest                         |
-| Miscellaneous | `cors`, `dotenv`, `bcrypt`                 |
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Mongoose](https://img.shields.io/badge/Mongoose-880000?style=for-the-badge&logo=mongoose&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
+![Supertest](https://img.shields.io/badge/Supertest-333333?style=for-the-badge)
+![AWS S3](https://img.shields.io/badge/AWS_S3-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
 
 ### Frontend
 
-| Category      | Technology                               |
-|---------------|------------------------------------------|
-| Library       | React                                    |
-| Build Tool    | Vite                                     |
-| Language      | TypeScript                               |
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
 
 ---
 

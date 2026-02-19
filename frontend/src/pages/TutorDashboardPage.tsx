@@ -24,9 +24,9 @@ const TutorDashboardPage: React.FC = () => {
         setCourses(fetchedCourses);
 
         const totalCourses = fetchedCourses.length;
-        const publishedCourses = fetchedCourses.filter(course => course.isPublished).length;
-        const totalStudents = fetchedCourses.reduce((total, course) => total + (course.enrollmentCount || 0), 0);
-        const totalRevenue = fetchedCourses.reduce((total, course) => total + (course.revenue || 0), 0);
+        const publishedCourses = fetchedCourses.filter((course: Course) => course.isPublished).length;
+        const totalStudents = fetchedCourses.reduce((total: number, course: Course) => total + (course.enrollmentCount || 0), 0);
+        const totalRevenue = fetchedCourses.reduce((total: number, course: Course) => total + (course.revenue || 0), 0);
 
         setStats({
           totalCourses,

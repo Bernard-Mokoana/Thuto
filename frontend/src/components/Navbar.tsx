@@ -1,23 +1,46 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const isStudent = user?.role === 'Student';
+  const isInstructor = user?.role === 'Tutor' || user?.role === 'Admin';
 
   const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = () => {
     logout();
+    toast.success('User logout successfully.');
+    setIsLogoutModalOpen(false);
     navigate('/');
   };
 
+  const cancelLogout = () => {
+    setIsLogoutModalOpen(false);
+  };
+
+  const getLogoDestination = () => {
+    const role = user?.role;
+
+    if (role === 'Student') return '/dashboard';
+    if (role === 'Tutor' || role === 'Admin') return '/tutor-dashboard';
+    return '/';
+  };
+
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <nav className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={getLogoDestination()} className="flex items-center space-x-2">
             <span className="text-xl font-bold text-gray-800">Thuto</span>
           </Link>
 
@@ -32,14 +55,16 @@ const Navbar: React.FC = () => {
 
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
+                {isStudent ? (
+                  <Link
+                    to="/dashboard"
+                    className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                ) : null}
 
-                {user?.role === 'Tutor' || user?.role === 'Admin' ? (
+                {isInstructor ? (
                   <Link
                     to="/tutor-dashboard"
                     className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
@@ -134,15 +159,17 @@ const Navbar: React.FC = () => {
 
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/dashboard"
-                    className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
+                  {isStudent ? (
+                    <Link
+                      to="/dashboard"
+                      className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  ) : null}
 
-                  {user?.role === 'Tutor' || user?.role === 'Admin' ? (
+                  {isInstructor ? (
                     <Link
                       to="/tutor-dashboard"
                       className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
@@ -191,8 +218,34 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </nav>
+        </div>
+      </nav>
+
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/25 px-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="px-6 pt-6 pb-5 text-center">
+              <h3 className="text-2xl font-bold text-red-500">Logout</h3>
+              <p className="mt-3 text-lg text-gray-700">Are you sure you want to logout?</p>
+            </div>
+            <div className="flex border-t border-gray-200">
+              <button
+                onClick={cancelLogout}
+                className="w-1/2 border-r border-gray-200 py-3 text-xl font-medium text-gray-500 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="w-1/2 py-3 text-xl font-semibold text-indigo-500 transition-colors hover:bg-gray-50"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

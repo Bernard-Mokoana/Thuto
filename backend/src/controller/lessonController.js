@@ -4,7 +4,7 @@ import { course } from "../model/course.js";
 export const createLesson = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { title, content, videoUrl, order } = req.body;
+    const { title, content, videoUrl, order, duration } = req.body;
 
     if (!title || order === undefined)
       return res.status(400).json({ message: "Title and order are required" });
@@ -15,9 +15,7 @@ export const createLesson = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
 
     if (!existingCourse.tutor) {
-      return res
-        .status(400)
-        .json({ message: "Course has no tutor assigned" });
+      return res.status(400).json({ message: "Course has no tutor assigned" });
     }
     if (!req.user?.id) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -37,6 +35,7 @@ export const createLesson = async (req, res) => {
       videoUrl: uploadedVideo || videoUrl,
       materials: uploadedMaterials,
       order,
+      duration: Number(duration) || 0,
     });
 
     return res
@@ -72,7 +71,7 @@ export const getLessonById = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Lesson fetched successfully" }, lesson);
+      .json({ message: "Lesson fetched successfully", lesson });
   } catch (error) {
     return res.status(500).json({ message: "Error fetching the lessons" });
   }
@@ -81,7 +80,7 @@ export const getLessonById = async (req, res) => {
 export const updateLesson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, videoUrl, order } = req.body;
+    const { title, content, videoUrl, order, duration } = req.body;
 
     const lesson = await lessons.findById(id);
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
@@ -95,6 +94,9 @@ export const updateLesson = async (req, res) => {
     lesson.content = content ?? lesson.content;
     lesson.videoUrl = videoUrl ?? lesson.videoUrl;
     lesson.order = order ?? lesson.order;
+    if (duration !== undefined) {
+      lesson.duration = Number(duration) || 0;
+    }
 
     const updated = await lesson.save();
 

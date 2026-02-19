@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { course } from "../model/course.js";
+import { enrollment } from "../model/enrollment.js";
 
 const createCourse = async (req, res) => {
   const { title, category, description, price } = req.body;
@@ -21,7 +22,7 @@ const createCourse = async (req, res) => {
       description,
       price,
       thumbnail: imageUrl,
-      tutor: req.user._id,
+      tutor: req.user.id,
     });
 
     return res
@@ -35,10 +36,45 @@ const createCourse = async (req, res) => {
 };
 
 const getCourse = async (req, res) => {
+  const { search, level, category, sortBy } = req.query;
+
   try {
+    const query = { isPublished: true };
+
+    if (search?.trim()) {
+      query.$or = [
+        { title: { $regex: search.trim(), $options: "i" } },
+        { description: { $regex: search.trim(), $options: "i" } },
+      ];
+    }
+
+    if (level) {
+      query.level = level;
+    }
+
+    if (category) {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        return res.status(400).json({ message: "Invalid category format" });
+      }
+      query.category = category;
+    }
+
+    const sortMap = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      "price-low": { price: 1 },
+      "price-high": { price: -1 },
+      duration: { duration: 1 },
+    };
+
+    const sortOption = sortMap[sortBy] || sortMap.newest;
+
     const courses = await course
-      .find({ isPublished: true })
-      .populate("tutor", "firstName lastName");
+      .find(query)
+      .populate("tutor", "firstName lastName")
+      .populate("category", "name")
+      .sort(sortOption);
+
     return res
       .status(200)
       .json({ message: "courses fetched successfully", course: courses });
@@ -53,10 +89,44 @@ const getTutorCourses = async (req, res) => {
   try {
     const courses = await course
       .find({ tutor: req.user.id })
-      .populate("tutor", "firstName lastName");
-    return res
-      .status(200)
-      .json({ message: "Tutor courses fetched successfully", course: courses });
+      .populate("tutor", "firstName lastName")
+      .lean();
+
+    const courseIds = courses.map((singleCourse) => singleCourse._id);
+
+    let enrollmentMap = new Map();
+
+    console.log(enrollmentMap);
+
+    if (courseIds.length > 0) {
+      const enrollmentCounts = await enrollment.aggregate([
+        {
+          $match: {
+            course: { $in: courseIds },
+          },
+        },
+        {
+          $group: {
+            _id: "$course",
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      enrollmentMap = new Map(
+        enrollmentCounts.map((item) => [item._id.toString(), item.count])
+      );
+    }
+
+    const coursesWithEnrollmentCount = courses.map((singleCourse) => ({
+      ...singleCourse,
+      enrollmentCount: enrollmentMap.get(singleCourse._id.toString()) || 0,
+    }));
+
+    return res.status(200).json({
+      message: "Tutor courses fetched successfully",
+      course: coursesWithEnrollmentCount,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -116,7 +186,7 @@ const getCourseById = async (req, res) => {
 
 const updateCourse = async (req, res) => {
   const { id } = req.params;
-  const { title, category, description, price, isPublished } = req.body;
+  const { title, category, description, price, level, isPublished } = req.body;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(id))
@@ -131,7 +201,7 @@ const updateCourse = async (req, res) => {
       foundCourse.thumbnail = req.file.location;
     }
 
-    if (!foundCourse.tutor.equals(req.user._id)) {
+    if (!foundCourse.tutor.equals(req.user.id)) {
       return res
         .status(403)
         .json({ message: "Unauthorized - You only update your own courses" });
@@ -141,6 +211,7 @@ const updateCourse = async (req, res) => {
     if (category !== undefined) foundCourse.category = category;
     if (description !== undefined) foundCourse.description = description;
     if (price !== undefined) foundCourse.price = price;
+    if (level !== undefined) foundCourse.level = level;
     if (isPublished !== undefined) foundCourse.isPublished = isPublished;
 
     const updateCourse = await foundCourse.save();
@@ -165,7 +236,7 @@ const deleteCourse = async (req, res) => {
     if (!foundCourse)
       return res.status(404).json({ message: "Course not found" });
 
-    if (!foundCourse.tutor.equals(req.user._id)) {
+    if (!foundCourse.tutor.equals(req.user.id)) {
       return res
         .status(403)
         .json({ message: "Unauthorized - You only  delete your courses" });

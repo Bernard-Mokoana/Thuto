@@ -2,37 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
-interface Course {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  level: string;
-  duration: number;
-  thumbnail?: string;
-  category: {
-    name: string;
-  };
-  tutor: {
-    firstName: string;
-    lastName: string;
-    _id: string;
-  };
-  isPublished: boolean;
-  requirements: string[];
-  learningOutcomes: string[];
-  tags: string[];
-}
-
-interface Lesson {
-  _id: string;
-  title: string;
-  content: string;
-  videoUrl?: string;
-  order: number;
-  duration: number;
-}
+import type { Course, Lesson } from '../types/models';
 
 const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +14,30 @@ const CourseDetailPage: React.FC = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const isStudent = user?.role === 'Student';
+  const hasLessons = lessons.length > 0;
+
+  const getFirstLessonId = () => {
+    if (!hasLessons) return null;
+    const sorted = [...lessons].sort((a, b) => a.order - b.order);
+    return sorted[0]?._id ?? null;
+  };
+
+  const navigateToFirstLesson = () => {
+    const firstLessonId = getFirstLessonId();
+    if (!firstLessonId) {
+      alert('No lessons available yet.');
+      return;
+    }
+    navigate(`/lessons/${firstLessonId}`);
+  };
+
+  const formatDuration = (totalSeconds?: number) => {
+    if (!totalSeconds || totalSeconds <= 0) return '0:00';
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -54,11 +48,25 @@ const CourseDetailPage: React.FC = () => {
           lessonAPI.getLessons(id!)
         ]);
         
-        setCourse(courseResponse.data);
-        setLessons(lessonsResponse.data.data || lessonsResponse.data);
+        const courseData = courseResponse.data?.course ?? courseResponse.data;
+        const normalizedCourse = courseData
+          ? {
+              ...courseData,
+              requirements: courseData.requirements ?? [],
+              learningOutcomes: courseData.learningOutcomes ?? [],
+              tags: courseData.tags ?? [],
+            }
+          : null;
+
+        setCourse(normalizedCourse);
+        const lessonsData =
+          lessonsResponse.data?.Lessons ??
+          lessonsResponse.data?.data ??
+          lessonsResponse.data;
+        setLessons(Array.isArray(lessonsData) ? lessonsData : []);
         
         // Check if user is enrolled
-        if (isAuthenticated && user) {
+        if (isAuthenticated && user && isStudent) {
           try {
             const enrollmentsResponse = await enrollmentAPI.getEnrollments();
             const userEnrollments = enrollmentsResponse.data.enrollments || [];
@@ -81,11 +89,15 @@ const CourseDetailPage: React.FC = () => {
     if (id) {
       fetchCourseData();
     }
-  }, [id, isAuthenticated, user, navigate]);
+  }, [id, isAuthenticated, user, isStudent, navigate]);
 
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       navigate('/login');
+      return;
+    }
+    if (!isStudent) {
+      alert('Tutors and admins can instruct only. Student enrollment is not available for this account.');
       return;
     }
 
@@ -96,6 +108,7 @@ const CourseDetailPage: React.FC = () => {
         userId: user!._id
       });
       setIsEnrolled(true);
+      navigateToFirstLesson();
     } catch (error) {
       console.error('Error enrolling in course:', error);
       alert('Failed to enroll in course. Please try again.');
@@ -152,16 +165,15 @@ const CourseDetailPage: React.FC = () => {
 
               <div className="flex items-center space-x-6 text-sm text-gray-500">
                 <div className="flex items-center">
-                  <span>4.8 (1,234 reviews)</span>
-                </div>
-                <div className="flex items-center">
-                  <span>2,456 students</span>
-                </div>
-                <div className="flex items-center">
-                  <span>{course.duration} minutes</span>
-                </div>
-                <div className="flex items-center">
                   <span>{lessons.length} lessons</span>
+                </div>
+                {course.duration > 0 && (
+                  <div className="flex items-center">
+                    <span>{course.duration} minutes</span>
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <span className="capitalize">{course.level}</span>
                 </div>
               </div>
             </div>
@@ -192,7 +204,7 @@ const CourseDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">What you'll learn</h3>
                       <ul className="space-y-2">
-                        {course.learningOutcomes.map((outcome, index) => (
+                        {course.learningOutcomes?.map((outcome, index) => (
                           <li key={index} className="flex items-start">
                             <span className="text-gray-700">{outcome}</span>
                           </li>
@@ -203,7 +215,7 @@ const CourseDetailPage: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
                       <ul className="space-y-2">
-                        {course.requirements.map((requirement, index) => (
+                        {course.requirements?.map((requirement, index) => (
                           <li key={index} className="flex items-start">
                             <span className="text-gray-700">{requirement}</span>
                           </li>
@@ -243,7 +255,9 @@ const CourseDetailPage: React.FC = () => {
                             </div>
                             <div>
                               <h4 className="font-medium text-gray-800">{lesson.title}</h4>
-                              <p className="text-sm text-gray-500">{lesson.duration} minutes</p>
+                              <p className="text-sm text-gray-500">
+                                Lesson {lesson.order} • {formatDuration(lesson.duration)}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -256,12 +270,13 @@ const CourseDetailPage: React.FC = () => {
                   <div className="flex items-start space-x-4">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
                       <span className="text-2xl font-bold text-blue-600">
-                        {course.tutor.firstName[0]}{course.tutor.lastName[0]}
+                        {course.tutor?.firstName?.[0] ?? ""}
+                        {course.tutor?.lastName?.[0] ?? ""}
                       </span>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {course.tutor.firstName} {course.tutor.lastName}
+                        {course.tutor?.firstName} {course.tutor?.lastName}
                       </h3>
                       <p className="text-gray-600 mb-2">Course Instructor</p>
                       <p className="text-gray-700">
@@ -281,35 +296,42 @@ const CourseDetailPage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-blue-600 mb-2">
-                    ${course.price}
+                    R{course.price}
                   </div>
                   <div className="text-sm text-gray-500">One-time payment</div>
                 </div>
 
-                {isEnrolled ? (
-                  <div className="space-y-3">
+                {isStudent ? (
+                  isEnrolled ? (
+                    <div className="space-y-3">
+                      <button
+                        onClick={navigateToFirstLesson}
+                        disabled={!hasLessons}
+                        className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        Continue Learning
+                      </button>
+                      <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                        Download Certificate
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      onClick={() => navigate('/dashboard')}
-                      className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all flex items-center justify-center"
+                      onClick={handleEnroll}
+                      disabled={enrolling}
+                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center"
                     >
-                      Continue Learning
+                      {enrolling ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      ) : (
+                        'Enroll Now'
+                      )}
                     </button>
-                    <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                      Download Certificate
-                    </button>
-                  </div>
+                  )
                 ) : (
-                  <button
-                    onClick={handleEnroll}
-                    disabled={enrolling}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center"
-                  >
-                    {enrolling ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    ) : (
-                      'Enroll Now'
-                    )}
-                  </button>
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Tutors and admins can instruct only. Switch to a student account to enroll and learn.
+                  </div>
                 )}
 
                 <div className="mt-6 pt-6 border-t border-gray-200">

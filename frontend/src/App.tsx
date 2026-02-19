@@ -8,6 +8,7 @@ import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import CoursePublishPage from "./pages/CoursePublishPage";
 import DashboardPage from "./pages/DashboardPage";
+import LessonPage from "./pages/LessonPage";
 import TutorDashboardPage from "./pages/TutorDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,6 +16,7 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CreateCoursePage from "./pages/CreateCoursePage";
+import EditCoursePage from "./pages/EditCoursePage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -35,6 +37,14 @@ function App() {
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/courses/:id" element={<CourseDetailPage />} />
               <Route
+                path="/lessons/:id"
+                element={
+                  <ProtectedRoute allowedRoles={["Student"]}>
+                    <LessonPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/courses/new"
                 element={
                   <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
@@ -51,9 +61,17 @@ function App() {
                 }
               />
               <Route
+                path="/courses/:id/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
+                    <EditCoursePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={["Student"]}>
                     <DashboardPage />
                   </ProtectedRoute>
                 }
@@ -74,6 +92,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="*" element={<HomePage />} />
             </Routes>
           </main>
           <ToastContainer />

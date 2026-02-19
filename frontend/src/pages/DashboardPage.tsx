@@ -2,25 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { enrollmentAPI } from '../services/api';
-
-interface Enrollment {
-  _id: string;
-  course: {
-    _id: string;
-    title: string;
-    description: string;
-    thumbnail?: string;
-    duration: number;
-    level: string;
-  };
-  progress: Array<{
-    lesson: string;
-    completed: boolean;
-    completedAt?: string;
-  }>;
-  enrolledAt: string;
-  certificateUrl?: string;
-}
+import type { Enrollment } from '../types/models';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +23,6 @@ const DashboardPage: React.FC = () => {
         const userEnrollments = response.data.enrollments || [];
         setEnrollments(userEnrollments);
 
-        // Calculate stats
         const totalCourses = userEnrollments.length;
         const completedCourses = userEnrollments.filter((enrollment: Enrollment) => 
           enrollment.certificateUrl

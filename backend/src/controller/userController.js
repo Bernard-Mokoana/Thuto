@@ -61,7 +61,7 @@ export const register = async (req, res) => {
 };
 export const getUserProfileById = async (req, res) => {
   try {
-    const userId = req.user._id || req.params.userId;
+    const userId = req.user?.id || req.params.userId;
 
     if (!userId) return res.status(404).json({ message: "User not found" });
 
@@ -78,17 +78,23 @@ export const getUserProfileById = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const User = await user.findById(req.user._id);
+    const userId = req.user?.id || req.params.userId;
+    const User = await user.findById(userId);
 
     if (!User) return res.status(404).json({ message: "user not found" });
 
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    if (req.body.password) {
-      user.password = await bcrypt.hash(req.body.password, 10);
+    if (req.file) {
+      User.profileImage = req.file.location;
     }
 
-    const updated = await user.save();
+    User.firstName = req.body.firstName || User.firstName;
+    User.lastName = req.body.lastName || User.lastName;
+    User.email = req.body.email || User.email;
+    if (req.body.password) {
+      User.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const updated = await User.save();
 
     return res
       .status(200)

@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
+});                                           
 
 api.interceptors.request.use(
   (config) => {
@@ -55,6 +55,7 @@ export const courseAPI = {
     category?: string;
     search?: string;
     level?: string;
+    sortBy?: string;
   }) => api.get("/courses", { params }),
   getTutorCourses: () => api.get("/courses/tutor"),
   getTutorCourse: (id: string) => api.get(`/courses/tutor/${id}`),
@@ -66,7 +67,15 @@ export const courseAPI = {
       },
     }),
   updateCourse: (id: string, courseData: any) =>
-    api.put(`/courses/${id}`, courseData),
+    api.put(`/courses/${id}`, courseData, {
+      ...(courseData instanceof FormData
+        ? {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        : {}),
+    }),
   deleteCourse: (id: string) => api.delete(`/courses/${id}`),
 };
 
@@ -74,7 +83,12 @@ export const userAPI = {
   getUsers: () => api.get("/users"),
   getUser: (id: string) => api.get(`/users/${id}`),
   getProfile: (id: string) => api.get(`/users/profile/${id}`),
-  updateUser: (id: string, userData: any) => api.put(`/users/${id}`, userData),
+  updateUser: (id: string, userData: any) =>
+    api.put(`/users/profile/${id}`, userData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
 };
 

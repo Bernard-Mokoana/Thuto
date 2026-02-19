@@ -9,8 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -r https://x-access-token:${GITHUB_TOKEN}@github.com/Bernard-Mokoana/Thuto.git"
+    "predeploy": "npm run build"
   },
   "keywords": [],
   "author": "Bernard Mokoana",

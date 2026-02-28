@@ -1,5 +1,22 @@
+import mongoose from "mongoose";
 import { lessons } from "../model/lessons.js";
 import { course } from "../model/course.js";
+import { getVideoDurationInSeconds } from "../utils/videoDuration.utils.js";
+
+/** Recompute and persist course total duration from the sum of its lessons. */
+export const refreshCourseDuration = async (courseId) => {
+  if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) return;
+  const id =
+    typeof courseId === "string"
+      ? new mongoose.Types.ObjectId(courseId)
+      : courseId;
+  const [result] = await lessons.aggregate([
+    { $match: { course: id } },
+    { $group: { _id: null, total: { $sum: "$duration" } } },
+  ]);
+  const totalSeconds = result?.total ?? 0;
+  await course.findByIdAndUpdate(id, { duration: totalSeconds });
+};
 
 export const createLesson = async (req, res) => {
   try {
@@ -27,16 +44,37 @@ export const createLesson = async (req, res) => {
     const uploadedVideo = req.files?.video?.[0]?.location;
     const uploadedMaterials =
       req.files?.materials?.map((file) => file.location) || [];
+    const resolvedVideoUrl = uploadedVideo || videoUrl;
+
+    let resolvedDuration = Number(duration);
+    const shouldProbeDuration =
+      (!Number.isFinite(resolvedDuration) || resolvedDuration <= 0) &&
+      !!resolvedVideoUrl;
+
+    if (shouldProbeDuration) {
+      try {
+        resolvedDuration = await getVideoDurationInSeconds(resolvedVideoUrl);
+      } catch (probeError) {
+        console.warn("Failed to probe lesson video duration:", probeError);
+        resolvedDuration = 0;
+      }
+    }
+
+    if (!Number.isFinite(resolvedDuration) || resolvedDuration < 0) {
+      resolvedDuration = 0;
+    }
 
     const newLesson = await lessons.create({
       course: courseId,
       title,
       content,
-      videoUrl: uploadedVideo || videoUrl,
+      videoUrl: resolvedVideoUrl,
       materials: uploadedMaterials,
       order,
-      duration: Number(duration) || 0,
+      duration: resolvedDuration,
     });
+
+    await refreshCourseDuration(courseId);
 
     return res
       .status(200)
@@ -86,19 +124,57 @@ export const updateLesson = async (req, res) => {
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
 
     const Course = await course.findById(lesson.course);
-    if (!Course.tutor.equals(req.user.id)) {
+    if (!Course)
+      return res.status(404).json({ message: "Course not found" });
+    if (!Course.tutor)
+      return res.status(400).json({ message: "Course has no tutor assigned" });
+    if (Course.tutor.toString() !== req.user?.id?.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const uploadedVideo = req.files?.video?.[0]?.location;
+    const uploadedMaterialUrls =
+      req.files?.materials?.map((file) => file.location) || [];
+    const nextVideoUrl =
+      uploadedVideo ?? (videoUrl !== undefined ? videoUrl : lesson.videoUrl);
+    const nextMaterials =
+      uploadedMaterialUrls.length > 0
+        ? [...(lesson.materials ?? []), ...uploadedMaterialUrls]
+        : lesson.materials ?? [];
+    let nextDuration =
+      duration !== undefined ? Number(duration) : Number(lesson.duration);
+
+    const videoUrlChanged =
+      nextVideoUrl != null &&
+      String(nextVideoUrl) !== String(lesson.videoUrl ?? "");
+    const durationInvalid =
+      !Number.isFinite(nextDuration) || nextDuration <= 0;
+    const shouldProbeDuration =
+      (durationInvalid || videoUrlChanged) && Boolean(nextVideoUrl);
+
+    if (shouldProbeDuration) {
+      try {
+        nextDuration = await getVideoDurationInSeconds(nextVideoUrl);
+      } catch (probeError) {
+        console.warn("Failed to probe lesson video duration:", probeError);
+        nextDuration = 0;
+      }
+    }
+
+    if (!Number.isFinite(nextDuration) || nextDuration < 0) {
+      nextDuration = 0;
     }
 
     lesson.title = title ?? lesson.title;
     lesson.content = content ?? lesson.content;
-    lesson.videoUrl = videoUrl ?? lesson.videoUrl;
+    lesson.videoUrl = nextVideoUrl ?? lesson.videoUrl;
+    lesson.materials = nextMaterials;
     lesson.order = order ?? lesson.order;
-    if (duration !== undefined) {
-      lesson.duration = Number(duration) || 0;
-    }
+    lesson.duration = nextDuration;
 
     const updated = await lesson.save();
+
+    await refreshCourseDuration(lesson.course);
 
     return res
       .status(200)
@@ -118,12 +194,15 @@ export const deleteLesson = async (req, res) => {
     if (!lesson) return res.status(404).json({ message: "lesson not found" });
 
     const Course = await course.findById(lesson.course);
-
-    if (!Course.tutor.equals(req.user.id)) {
+    if (!Course)
+      return res.status(404).json({ message: "Course not found" });
+    if (!Course.tutor || Course.tutor.toString() !== req.user?.id?.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
+    const courseId = lesson.course;
     await lesson.deleteOne();
+    await refreshCourseDuration(courseId);
 
     return res.status(200).json({ message: "Lesson deleted successfully" });
   } catch (error) {

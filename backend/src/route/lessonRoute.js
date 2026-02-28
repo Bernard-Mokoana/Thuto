@@ -28,7 +28,14 @@ router
 router
   .route("/:id")
   .get(getLessonById)
-  .put(tutorOnly, updateLesson)
+  .put(
+    tutorOnly,
+    upload.fields([
+      { name: "video", maxCount: 1 },
+      { name: "materials", maxCount: 10 },
+    ]),
+    updateLesson
+  )
   .delete(tutorOnly, deleteLesson);
 
 export default router;

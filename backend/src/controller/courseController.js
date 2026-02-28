@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { course } from "../model/course.js";
 import { enrollment } from "../model/enrollment.js";
+import { refreshCourseDuration } from "./lessonController.js";
 
 const createCourse = async (req, res) => {
   const { title, category, description, price } = req.body;
@@ -214,10 +215,15 @@ const updateCourse = async (req, res) => {
     if (level !== undefined) foundCourse.level = level;
     if (isPublished !== undefined) foundCourse.isPublished = isPublished;
 
-    const updateCourse = await foundCourse.save();
+    const updatedCourse = await foundCourse.save();
+    await refreshCourseDuration(id);
+    const courseWithDuration = await course.findById(id);
     return res
       .status(201)
-      .json({ message: "Updated successfully", course: updateCourse });
+      .json({
+        message: "Updated successfully",
+        course: courseWithDuration ?? updatedCourse,
+      });
   } catch (error) {
     return res
       .status(500)

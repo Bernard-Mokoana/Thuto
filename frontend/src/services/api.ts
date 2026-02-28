@@ -112,8 +112,12 @@ export const lessonAPI = {
         "Content-Type": "multipart/form-data",
       },
     }),
-  updateLesson: (id: string, lessonData: any) =>
-    api.put(`/lessons/${id}`, lessonData),
+  updateLesson: (id: string, lessonData: FormData | Record<string, unknown>) =>
+    api.put(`/lessons/${id}`, lessonData, {
+      ...(lessonData instanceof FormData
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : {}),
+    }),
   deleteLesson: (id: string) => api.delete(`/lessons/${id}`),
 };
 

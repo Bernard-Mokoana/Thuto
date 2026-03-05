@@ -13,6 +13,12 @@ export interface User {
 export interface Category {
   _id: string;
   name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  parentCategory?: string;
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export interface TutorProfile {

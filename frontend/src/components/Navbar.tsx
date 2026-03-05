@@ -10,6 +10,7 @@ const Navbar: React.FC = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const isStudent = user?.role === 'Student';
   const isInstructor = user?.role === 'Tutor' || user?.role === 'Admin';
+  const isAdmin = user?.role === 'Admin';
 
   const handleLogout = () => {
     setIsLogoutModalOpen(true);
@@ -70,6 +71,15 @@ const Navbar: React.FC = () => {
                     className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Teach
+                  </Link>
+                ) : null}
+
+                {isAdmin ? (
+                  <Link
+                    to="/categories/new"
+                    className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Categories
                   </Link>
                 ) : null}
 
@@ -176,6 +186,16 @@ const Navbar: React.FC = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Teach
+                    </Link>
+                  ) : null}
+
+                  {isAdmin ? (
+                    <Link
+                      to="/categories/new"
+                      className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Categories
                     </Link>
                   ) : null}
 

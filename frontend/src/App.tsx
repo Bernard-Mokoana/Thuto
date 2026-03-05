@@ -17,6 +17,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CreateCoursePage from "./pages/CreateCoursePage";
 import EditCoursePage from "./pages/EditCoursePage";
+import CreateCategoryPage from "./pages/CreateCategoryPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -68,6 +69,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
                     <EditCoursePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/categories/new"
+                element={
+                  <ProtectedRoute allowedRoles={["Admin"]}>
+                    <CreateCategoryPage />
                   </ProtectedRoute>
                 }
               />

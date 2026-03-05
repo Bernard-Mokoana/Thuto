@@ -1,16 +1,52 @@
 import mongoose from "mongoose";
 import { course } from "../model/course.js";
+import { category as categoryModel } from "../model/category.js";
 import { enrollment } from "../model/enrollment.js";
 import { refreshCourseDuration } from "./lessonController.js";
+
+const resolveValidCategoryId = async (categoryId) => {
+  const normalizedCategoryId =
+    typeof categoryId === "string"
+      ? categoryId.trim()
+      : String(categoryId ?? "");
+
+  if (
+    !normalizedCategoryId ||
+    !mongoose.Types.ObjectId.isValid(normalizedCategoryId)
+  ) {
+    return null;
+  }
+
+  const existingCategory = await categoryModel
+    .findOne({ _id: normalizedCategoryId, isActive: true })
+    .select("_id");
+
+  return existingCategory?._id ?? null;
+};
 
 const createCourse = async (req, res) => {
   const { title, category, description, price } = req.body;
   const imageUrl = req.file ? req.file.location : null;
 
-  if (!title || !category || !description || !price)
-    return res.status(400).json({ message: "All fields are required" });
+  const missingFields = [];
+  if (!title?.trim()) missingFields.push("title");
+  if (!category) missingFields.push("category");
+  if (!description?.trim()) missingFields.push("description");
+  if (price === undefined || price === null || price === "")
+    missingFields.push("price");
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({
+      message: `Missing required field(s): ${missingFields.join(", ")}`,
+    });
+  }
 
   try {
+    const validCategoryId = await resolveValidCategoryId(category);
+    if (!validCategoryId) {
+      return res.status(400).json({ message: "Invalid or inactive category" });
+    }
+
     const existingCourse = await course.findOne({ title });
     if (existingCourse)
       return res
@@ -19,7 +55,7 @@ const createCourse = async (req, res) => {
 
     const newCourse = await course.create({
       title,
-      category,
+      category: validCategoryId,
       description,
       price,
       thumbnail: imageUrl,
@@ -96,8 +132,6 @@ const getTutorCourses = async (req, res) => {
     const courseIds = courses.map((singleCourse) => singleCourse._id);
 
     let enrollmentMap = new Map();
-
-    console.log(enrollmentMap);
 
     if (courseIds.length > 0) {
       const enrollmentCounts = await enrollment.aggregate([
@@ -209,7 +243,15 @@ const updateCourse = async (req, res) => {
     }
 
     if (title !== undefined) foundCourse.title = title;
-    if (category !== undefined) foundCourse.category = category;
+    if (category !== undefined) {
+      const validCategoryId = await resolveValidCategoryId(category);
+      if (!validCategoryId) {
+        return res
+          .status(400)
+          .json({ message: "Invalid or inactive category" });
+      }
+      foundCourse.category = validCategoryId;
+    }
     if (description !== undefined) foundCourse.description = description;
     if (price !== undefined) foundCourse.price = price;
     if (level !== undefined) foundCourse.level = level;
@@ -218,12 +260,10 @@ const updateCourse = async (req, res) => {
     const updatedCourse = await foundCourse.save();
     await refreshCourseDuration(id);
     const courseWithDuration = await course.findById(id);
-    return res
-      .status(201)
-      .json({
-        message: "Updated successfully",
-        course: courseWithDuration ?? updatedCourse,
-      });
+    return res.status(201).json({
+      message: "Updated successfully",
+      course: courseWithDuration ?? updatedCourse,
+    });
   } catch (error) {
     return res
       .status(500)

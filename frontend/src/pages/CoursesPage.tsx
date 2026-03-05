@@ -24,6 +24,7 @@ const CoursesPage = () => {
         };
         
         const response = await courseAPI.getCourses(params);
+        
         setCourses(response.data.course || []);
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -163,7 +164,7 @@ const CoursesPage = () => {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-blue-500 font-medium">
-                      {course.category?.name || 'General'}
+                      {course.category?.name || "General"}
                     </span>
                     <span className="text-sm text-gray-500 capitalize">{course.level}</span>
                   </div>

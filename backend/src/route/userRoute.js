@@ -5,6 +5,7 @@ import {
   getAllUsers,
   updateUserRoleByAdmin,
   deleteUserByAdmin,
+  deleteOwnAccount,
 } from "../controller/userController.js";
 import express from "express";
 import { verifyJwt, adminOnly } from "../middleware/authMiddleware.js";
@@ -20,6 +21,7 @@ router
   .route("/profile/:userId")
   .get(getUserProfile)
   .put(upload.single("profileImage"), updateUserProfile);
+router.delete("/me", deleteOwnAccount);
 router.get("/", adminOnly, getAllUsers);
 router.patch("/:id/role", adminOnly, updateUserRoleByAdmin);
 router.delete("/:id", adminOnly, deleteUserByAdmin);

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { userAPI } from '../services/api';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,6 +72,22 @@ const ProfilePage: React.FC = () => {
     });
     setProfileImageFile(null);
     setIsEditing(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'This will permanently delete your account and all associated data. Continue?'
+    );
+    if (!confirmed) return;
+
+    try {
+      await userAPI.deleteMe();
+      logout();
+      navigate('/register');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert('Failed to delete account. Please try again.');
+    }
   };
 
   return (
@@ -242,9 +260,12 @@ const ProfilePage: React.FC = () => {
                     <h3 className="text-sm font-medium text-gray-800">Change Password</h3>
                     <p className="text-sm text-gray-500">Update your password to keep your account secure</p>
                   </div>
-                  <button className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors">
+                  <Link
+                    to="/profile/change-password"
+                    className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors"
+                  >
                     Change
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -252,9 +273,12 @@ const ProfilePage: React.FC = () => {
                     <h3 className="text-sm font-medium text-gray-800">Email Notifications</h3>
                     <p className="text-sm text-gray-500">Manage your email notification preferences</p>
                   </div>
-                  <button className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors">
+                  <Link
+                    to="/profile/notifications"
+                    className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors"
+                  >
                     Manage
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -262,9 +286,12 @@ const ProfilePage: React.FC = () => {
                     <h3 className="text-sm font-medium text-gray-800">Privacy Settings</h3>
                     <p className="text-sm text-gray-500">Control your privacy and data sharing</p>
                   </div>
-                  <button className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors">
+                  <Link
+                    to="/profile/privacy"
+                    className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors"
+                  >
                     Manage
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -282,7 +309,10 @@ const ProfilePage: React.FC = () => {
                       Permanently delete your account and all associated data
                     </p>
                   </div>
-                  <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                  <button
+                    onClick={handleDeleteAccount}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                  >
                     Delete Account
                   </button>
                 </div>

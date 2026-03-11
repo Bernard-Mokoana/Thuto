@@ -11,6 +11,9 @@ import DashboardPage from "./pages/DashboardPage";
 import LessonPage from "./pages/LessonPage";
 import TutorDashboardPage from "./pages/TutorDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import EmailNotificationsPage from "./pages/EmailNotificationsPage";
+import PrivacySettingsPage from "./pages/PrivacySettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
@@ -110,6 +113,30 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/change-password"
+                element={
+                  <ProtectedRoute>
+                    <ChangePasswordPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/notifications"
+                element={
+                  <ProtectedRoute>
+                    <EmailNotificationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/privacy"
+                element={
+                  <ProtectedRoute>
+                    <PrivacySettingsPage />
                   </ProtectedRoute>
                 }
               />

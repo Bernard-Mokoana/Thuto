@@ -94,6 +94,7 @@ export const userAPI = {
     }),
   updateUserRole: (id: string, role: "Student" | "Tutor" | "Admin") =>
     api.patch(`/users/${id}/role`, { role }),
+  deleteMe: () => api.delete("/users/me"),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
 };
 

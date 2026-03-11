@@ -18,6 +18,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CreateCoursePage from "./pages/CreateCoursePage";
 import EditCoursePage from "./pages/EditCoursePage";
 import CreateCategoryPage from "./pages/CreateCategoryPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -51,7 +52,7 @@ function App() {
               <Route
                 path="/courses/new"
                 element={
-                  <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
+                  <ProtectedRoute allowedRoles={["Tutor"]}>
                     <CreateCoursePage />
                   </ProtectedRoute>
                 }
@@ -91,8 +92,16 @@ function App() {
               <Route
                 path="/tutor-dashboard"
                 element={
-                  <ProtectedRoute allowedRoles={["Tutor", "Admin"]}>
+                  <ProtectedRoute allowedRoles={["Tutor"]}>
                     <TutorDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["Admin"]}>
+                    <AdminDashboardPage />
                   </ProtectedRoute>
                 }
               />

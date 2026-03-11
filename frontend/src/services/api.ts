@@ -59,6 +59,7 @@ export const courseAPI = {
   }) => api.get("/courses", { params }),
   getTutorCourses: () => api.get("/courses/tutor"),
   getTutorCourse: (id: string) => api.get(`/courses/tutor/${id}`),
+  getAdminCourses: () => api.get("/courses/admin/all"),
   getCourse: (id: string) => api.get(`/courses/${id}`),
   createCourse: (courseData: FormData) =>
     api.post("/courses", courseData, {
@@ -77,6 +78,8 @@ export const courseAPI = {
         : {}),
     }),
   deleteCourse: (id: string) => api.delete(`/courses/${id}`),
+  adminTogglePublish: (id: string, isPublished: boolean) =>
+    api.patch(`/courses/admin/${id}/publish`, { isPublished }),
 };
 
 export const userAPI = {
@@ -89,6 +92,8 @@ export const userAPI = {
         "Content-Type": "multipart/form-data",
       },
     }),
+  updateUserRole: (id: string, role: "Student" | "Tutor" | "Admin") =>
+    api.patch(`/users/${id}/role`, { role }),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
 };
 

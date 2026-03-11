@@ -176,8 +176,11 @@ const getTutorCourseById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ message: "Invalid course ID format" });
 
+    const query =
+      req.user?.role === "Admin" ? { _id: id } : { _id: id, tutor: req.user.id };
+
     const foundCourse = await course
-      .findOne({ _id: id, tutor: req.user.id })
+      .findOne(query)
       .populate("tutor", "firstName lastName");
 
     if (!foundCourse) {
@@ -236,7 +239,7 @@ const updateCourse = async (req, res) => {
       foundCourse.thumbnail = req.file.location;
     }
 
-    if (!foundCourse.tutor.equals(req.user.id)) {
+    if (req.user.role !== "Admin" && !foundCourse.tutor.equals(req.user.id)) {
       return res
         .status(403)
         .json({ message: "Unauthorized - You only update your own courses" });
@@ -282,7 +285,7 @@ const deleteCourse = async (req, res) => {
     if (!foundCourse)
       return res.status(404).json({ message: "Course not found" });
 
-    if (!foundCourse.tutor.equals(req.user.id)) {
+    if (req.user.role !== "Admin" && !foundCourse.tutor.equals(req.user.id)) {
       return res
         .status(403)
         .json({ message: "Unauthorized - You only  delete your courses" });
@@ -295,6 +298,58 @@ const deleteCourse = async (req, res) => {
   }
 };
 
+const getAdminCourses = async (req, res) => {
+  try {
+    const courses = await course
+      .find({})
+      .populate("tutor", "firstName lastName email")
+      .populate("category", "name")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      message: "All courses fetched successfully",
+      courses,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch courses", error: error.message });
+  }
+};
+
+const adminToggleCoursePublish = async (req, res) => {
+  const { id } = req.params;
+  const { isPublished } = req.body;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ message: "Invalid course Id format" });
+
+    if (typeof isPublished !== "boolean") {
+      return res.status(400).json({ message: "isPublished must be boolean" });
+    }
+
+    const updatedCourse = await course
+      .findByIdAndUpdate(id, { isPublished }, { new: true })
+      .populate("tutor", "firstName lastName email")
+      .populate("category", "name");
+
+    if (!updatedCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    return res.status(200).json({
+      message: "Course publish status updated successfully",
+      course: updatedCourse,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to update course publish status",
+      error: error.message,
+    });
+  }
+};
+
 export {
   createCourse,
   getCourse,
@@ -303,4 +358,6 @@ export {
   getCourseById,
   updateCourse,
   deleteCourse,
+  getAdminCourses,
+  adminToggleCoursePublish,
 };

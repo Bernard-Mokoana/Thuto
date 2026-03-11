@@ -176,13 +176,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const register = async (userData: FormData) => {
     try {
-      const response = await authAPI.register(userData);
-      const { token, user: newUser } = response.data;
-
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(newUser));
-      setUser(newUser);
-      scheduleSessionExpiryWarning();
+      await authAPI.register(userData);
     } catch (error) {
       throw error;
     }

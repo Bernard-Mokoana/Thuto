@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { userAPI } from '../services/api';
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,6 +41,16 @@ const ProfilePage: React.FC = () => {
 
     try {
       await userAPI.updateUser(user!._id, data);
+      const refreshed = await refreshUser();
+      if (refreshed) {
+        setFormData({
+          firstName: refreshed.firstName || '',
+          lastName: refreshed.lastName || '',
+          email: refreshed.email || '',
+          profileImage: refreshed.profileImage || '',
+        });
+      }
+      setProfileImageFile(null);
       setIsEditing(false);
       alert('Profile updated successfully!');
     } catch (error) {

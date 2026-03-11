@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: FormData) => Promise<void>;
+  refreshUser: (userId?: string) => Promise<User | null>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -96,6 +97,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("user");
   };
 
+  const persistUser = (nextUser: User | null) => {
+    if (nextUser) {
+      localStorage.setItem("user", JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem("user");
+    }
+  };
+
   const handleSessionExpired = () => {
     clearSessionTimers();
     clearAuthStorage();
@@ -146,7 +155,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       userAPI
         .getProfile(parsedUser._id)
         .then((response) => {
-          setUser(response.data.user);
+          const refreshedUser = response.data.user;
+          setUser(refreshedUser);
+          persistUser(refreshedUser);
         })
         .catch(() => {
           localStorage.removeItem("token");
@@ -166,7 +177,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { accessToken, user: userData } = response.data;
 
       localStorage.setItem("token", accessToken);
-      localStorage.setItem("user", JSON.stringify(userData));
+      persistUser(userData);
       setUser(userData);
       scheduleSessionExpiryWarning();
     } catch (error) {
@@ -180,6 +191,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       throw error;
     }
+  };
+
+  const refreshUser = async (userId?: string) => {
+    const targetUserId = userId || user?._id;
+    if (!targetUserId) return null;
+
+    const response = await userAPI.getProfile(targetUserId);
+    const refreshedUser = response.data.user;
+    setUser(refreshedUser);
+    persistUser(refreshedUser);
+    return refreshedUser;
   };
 
   const logout = () => {
@@ -210,6 +232,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     login,
     register,
+    refreshUser,
     logout,
     isAuthenticated: !!user,
   };

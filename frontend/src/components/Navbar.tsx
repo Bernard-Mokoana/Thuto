@@ -10,6 +10,7 @@ const Navbar: React.FC = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const isStudent = user?.role === 'Student';
   const isInstructor = user?.role === 'Tutor' || user?.role === 'Admin';
+  const isAdmin = user?.role === 'Admin';
 
   const handleLogout = () => {
     setIsLogoutModalOpen(true);
@@ -30,7 +31,8 @@ const Navbar: React.FC = () => {
     const role = user?.role;
 
     if (role === 'Student') return '/dashboard';
-    if (role === 'Tutor' || role === 'Admin') return '/tutor-dashboard';
+    if (role === 'Tutor') return '/tutor-dashboard';
+    if (role === 'Admin') return '/admin-dashboard';
     return '/';
   };
 
@@ -66,10 +68,19 @@ const Navbar: React.FC = () => {
 
                 {isInstructor ? (
                   <Link
-                    to="/tutor-dashboard"
+                    to={isAdmin ? "/admin-dashboard" : "/tutor-dashboard"}
                     className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Teach
+                    {isAdmin ? "Admin" : "Teach"}
+                  </Link>
+                ) : null}
+
+                {isAdmin ? (
+                  <Link
+                    to="/categories/new"
+                    className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Categories
                   </Link>
                 ) : null}
 
@@ -171,11 +182,21 @@ const Navbar: React.FC = () => {
 
                   {isInstructor ? (
                     <Link
-                      to="/tutor-dashboard"
+                      to={isAdmin ? "/admin-dashboard" : "/tutor-dashboard"}
                       className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Teach
+                      {isAdmin ? "Admin" : "Teach"}
+                    </Link>
+                  ) : null}
+
+                  {isAdmin ? (
+                    <Link
+                      to="/categories/new"
+                      className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-blue-500 hover:bg-gray-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Categories
                     </Link>
                   ) : null}
 

@@ -11,6 +11,9 @@ interface EditableLesson {
   content: string;
   order: number;
   videoUrl: string;
+  videoFile: File | null;
+  materials: File[];
+  existingMaterials: string[];
   isNew: boolean;
 }
 
@@ -62,6 +65,9 @@ const EditCoursePage: React.FC = () => {
               content: lesson.content || "",
               order: lesson.order ?? 1,
               videoUrl: lesson.videoUrl || "",
+              videoFile: null,
+              materials: [],
+              existingMaterials: Array.isArray(lesson.materials) ? lesson.materials : [],
               isNew: false,
             }))
             .sort((a, b) => a.order - b.order)
@@ -122,14 +128,28 @@ const EditCoursePage: React.FC = () => {
       const newLessons = lessons.filter((lesson) => lesson.isNew);
 
       await Promise.all(
-        existingLessons.map((lesson) =>
-          lessonAPI.updateLesson(lesson._id!, {
+        existingLessons.map((lesson) => {
+          const hasFiles = lesson.videoFile || lesson.materials.length > 0;
+          if (hasFiles) {
+            const formData = new FormData();
+            formData.append("title", lesson.title);
+            formData.append("content", lesson.content);
+            formData.append("order", String(lesson.order));
+            if (lesson.videoFile) {
+              formData.append("video", lesson.videoFile);
+            } else if (lesson.videoUrl.trim()) {
+              formData.append("videoUrl", lesson.videoUrl.trim());
+            }
+            lesson.materials.forEach((file) => formData.append("materials", file));
+            return lessonAPI.updateLesson(lesson._id!, formData);
+          }
+          return lessonAPI.updateLesson(lesson._id!, {
             title: lesson.title,
             content: lesson.content,
             order: lesson.order,
             videoUrl: lesson.videoUrl || undefined,
-          })
-        )
+          });
+        })
       );
 
       for (const lesson of newLessons) {
@@ -137,9 +157,12 @@ const EditCoursePage: React.FC = () => {
         newLessonData.append("title", lesson.title);
         newLessonData.append("content", lesson.content);
         newLessonData.append("order", String(lesson.order));
-        if (lesson.videoUrl.trim()) {
+        if (lesson.videoFile) {
+          newLessonData.append("video", lesson.videoFile);
+        } else if (lesson.videoUrl.trim()) {
           newLessonData.append("videoUrl", lesson.videoUrl.trim());
         }
+        lesson.materials.forEach((file) => newLessonData.append("materials", file));
         await lessonAPI.createLesson(id, newLessonData);
       }
 
@@ -157,13 +180,23 @@ const EditCoursePage: React.FC = () => {
   const handleLessonChange = (
     localId: string,
     field: keyof Omit<EditableLesson, "_id" | "isNew">,
-    value: string | number
+    value: string | number | File | File[] | null
   ) => {
     setLessons((prev) =>
       prev.map((lesson) =>
         lesson.localId === localId ? { ...lesson, [field]: value } : lesson
       )
     );
+  };
+
+  const handleLessonVideoChange = (localId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    handleLessonChange(localId, "videoFile", file);
+  };
+
+  const handleLessonMaterialsChange = (localId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    handleLessonChange(localId, "materials", files);
   };
 
   const addLesson = () => {
@@ -178,6 +211,9 @@ const EditCoursePage: React.FC = () => {
           content: "",
           order: nextOrder,
           videoUrl: "",
+          videoFile: null,
+          materials: [],
+          existingMaterials: [],
           isNew: true,
         },
       ];
@@ -416,16 +452,50 @@ const EditCoursePage: React.FC = () => {
 
                     <div className="mt-3">
                       <label className="block text-sm text-gray-700 mb-1">
-                        Video URL (optional)
+                        Video (optional)
+                      </label>
+                      <div className="space-y-2">
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={(e) => handleLessonVideoChange(lesson.localId, e)}
+                          className="w-full text-sm text-gray-600"
+                        />
+                        {lesson.videoFile && (
+                          <p className="text-xs text-gray-500">
+                            New file: {lesson.videoFile.name}
+                          </p>
+                        )}
+                        <input
+                          type="url"
+                          placeholder="Or paste video URL"
+                          value={lesson.videoUrl}
+                          onChange={(e) =>
+                            handleLessonChange(lesson.localId, "videoUrl", e.target.value)
+                          }
+                          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Materials (optional)
                       </label>
                       <input
-                        type="url"
-                        value={lesson.videoUrl}
-                        onChange={(e) =>
-                          handleLessonChange(lesson.localId, "videoUrl", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="file"
+                        multiple
+                        onChange={(e) => handleLessonMaterialsChange(lesson.localId, e)}
+                        className="w-full text-sm text-gray-600"
                       />
+                      {(lesson.existingMaterials?.length > 0 || lesson.materials?.length > 0) && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {lesson.existingMaterials?.length > 0 &&
+                            `${lesson.existingMaterials.length} existing; `}
+                          {lesson.materials?.length > 0 &&
+                            `${lesson.materials.length} new file(s) selected`}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}

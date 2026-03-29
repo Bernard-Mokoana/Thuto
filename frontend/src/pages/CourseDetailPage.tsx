@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -110,6 +111,12 @@ const CourseDetailPage: React.FC = () => {
       setIsEnrolled(true);
       navigateToFirstLesson();
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        // Already enrolled
+        setIsEnrolled(true);
+        navigateToFirstLesson();
+        return;
+      }
       console.error('Error enrolling in course:', error);
       alert('Failed to enroll in course. Please try again.');
     } finally {

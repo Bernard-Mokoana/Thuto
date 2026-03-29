@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -65,9 +66,11 @@ const RegisterPage: React.FC = () => {
       }
 
       await register(data);
-      navigate('/');
+      toast.success('Registration successful. Please verify your email before logging in.');
+      navigate('/login');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      toast.error('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

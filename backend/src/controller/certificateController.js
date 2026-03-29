@@ -11,8 +11,6 @@ export const generateCertificate = async (req, res) => {
       return res.status(404).json({ message: "Lessons are not found" });
     const lessonIds = existingLessons.map((l) => l._id.toString());
 
-    console.log(existingLessons);
-
     const existingSubmissions = await submission.find({
       student: userId,
       lesson: { $in: lessonIds },

@@ -1,4 +1,7 @@
 export type UserRole = "Student" | "Tutor" | "Admin";
+export type AssessmentType = "quiz" | "assessment" | "exam";
+export type TransactionStatus = "pending" | "success" | "failed";
+export type TransactionMethod = "eft" | "card" | "cash" | "wallet";
 
 export interface User {
   _id: string;
@@ -13,6 +16,12 @@ export interface User {
 export interface Category {
   _id: string;
   name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  parentCategory?: string;
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export interface TutorProfile {
@@ -68,4 +77,39 @@ export interface Enrollment {
   progress: EnrollmentProgress[];
   enrolledAt: string;
   certificateUrl?: string;
+}
+
+export interface SubmissonData {
+  title: string;
+  content: string;
+}
+
+export interface AssessmentQuestion {
+  question: string;
+  options: string[];
+  correctionAnswer: string;
+}
+
+export interface CreateAssessment {
+  lesson: string;
+  questions: assessmentQuestion[];
+  type?: AssessmentType;
+}
+
+export interface Transaction {
+  _id: string;
+  student: string;
+  course: string;
+  amount: number;
+  method: TransactionMethod;
+  status: TransactionStatus;
+  reference?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionRecord {
+  _id: string;
+  amount: number;
+  status: "pending" | "success" | "failed";
 }

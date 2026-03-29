@@ -49,7 +49,6 @@ const categorySchema = new Schema(
 
 // Indexes for efficient querying
 categorySchema.index({ parentCategory: 1, isActive: 1 });
-categorySchema.index({ slug: 1 });
 categorySchema.index({ sortOrder: 1 });
 
 // Virtual for getting subcategories

@@ -8,13 +8,8 @@ import {
   transactionAPI,
   userAPI,
 } from "../services/api";
-import type { Course, User, UserRole } from "../types/models";
+import type { Course, User, UserRole, TransactionRecord } from "../types/models";
 
-interface TransactionRecord {
-  _id: string;
-  amount: number;
-  status: "pending" | "success" | "failed";
-}
 
 const AdminDashboardPage = () => {
   const [users, setUsers] = useState<User[]>([]);

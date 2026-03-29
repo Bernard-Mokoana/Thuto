@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});                                           
+});
 
 api.interceptors.request.use(
   (config) => {
@@ -36,155 +36,17 @@ api.interceptors.response.use(
   }
 );
 
-export const authAPI = {
-  login: (credentials: { email: string; password: string }) =>
-    api.post("/auth/login", credentials),
-  register: (userData: FormData) =>
-    api.post("/users/register", userData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }),
-  logout: () => api.post("/auth/logout"),
-};
-
-export const courseAPI = {
-  getCourses: (params?: {
-    page?: number;
-    limit?: number;
-    category?: string;
-    search?: string;
-    level?: string;
-    sortBy?: string;
-  }) => api.get("/courses", { params }),
-  getTutorCourses: () => api.get("/courses/tutor"),
-  getTutorCourse: (id: string) => api.get(`/courses/tutor/${id}`),
-  getAdminCourses: () => api.get("/courses/admin/all"),
-  getCourse: (id: string) => api.get(`/courses/${id}`),
-  createCourse: (courseData: FormData) =>
-    api.post("/courses", courseData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }),
-  updateCourse: (id: string, courseData: any) =>
-    api.put(`/courses/${id}`, courseData, {
-      ...(courseData instanceof FormData
-        ? {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        : {}),
-    }),
-  deleteCourse: (id: string) => api.delete(`/courses/${id}`),
-  adminTogglePublish: (id: string, isPublished: boolean) =>
-    api.patch(`/courses/admin/${id}/publish`, { isPublished }),
-};
-
-export const userAPI = {
-  getUsers: () => api.get("/users"),
-  getUser: (id: string) => api.get(`/users/${id}`),
-  getProfile: (id: string) => api.get(`/users/profile/${id}`),
-  updateUser: (id: string, userData: any) =>
-    api.put(`/users/profile/${id}`, userData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }),
-  updateUserRole: (id: string, role: "Student" | "Tutor" | "Admin") =>
-    api.patch(`/users/${id}/role`, { role }),
-  deleteMe: () => api.delete("/users/me"),
-  deleteUser: (id: string) => api.delete(`/users/${id}`),
-};
-
-export const enrollmentAPI = {
-  getEnrollments: () => api.get("/enrollments"),
-  createEnrollment: (enrollmentData: {
-    courseId: string;
-    userId: string;
-  }) => api.post("/enrollments/enroll", enrollmentData),
-  updateEnrollment: (id: string, enrollmentData: any) =>
-    api.put(`/enrollments/${id}`, enrollmentData),
-  deleteEnrollment: (id: string) => api.delete(`/enrollments/${id}`),
-};
-
-export const lessonAPI = {
-  getLessons: (courseId: string) => api.get(`/lessons/course/${courseId}`),
-  getLesson: (id: string) => api.get(`/lessons/${id}`),
-  createLesson: (courseId: string, lessonData: FormData) =>
-    api.post(`/lessons/course/${courseId}`, lessonData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }),
-  updateLesson: (id: string, lessonData: FormData | Record<string, unknown>) =>
-    api.put(`/lessons/${id}`, lessonData, {
-      ...(lessonData instanceof FormData
-        ? { headers: { "Content-Type": "multipart/form-data" } }
-        : {}),
-    }),
-  deleteLesson: (id: string) => api.delete(`/lessons/${id}`),
-};
-
-export const categoryAPI = {
-  getCategories: () => api.get("/categories"),
-  createCategory: (categoryData: {
-    name: string;
-    description?: string;
-    icon?: string;
-    color?: string;
-    parentCategory?: string;
-    sortOrder?: number;
-  }) => api.post("/categories", categoryData),
-};
-
-export const progressAPI = {
-  getProgress: (courseId: string) => api.get(`/progress/course/${courseId}`),
-  updateProgress: (progressData: any) => api.post("/progress", progressData),
-  markLessonComplete: (lessonId: string) =>
-    api.post(`/progress/lesson/${lessonId}/complete`),
-};
-
-export const transactionAPI = {
-  getTransactions: () => api.get("/transaction"),
-  createTransaction: (transactionData: any) =>
-    api.post("/transaction", transactionData),
-  getTransaction: (id: string) => api.get(`/transaction/${id}`),
-};
-
-export const assessmentAPI = {
-  getAssessments: (courseId: string) =>
-    api.get(`/assessments/course/${courseId}`),
-  getAssessment: (id: string) => api.get(`/assessments/${id}`),
-  createAssessment: (assessmentData: any) =>
-    api.post("/assessments", assessmentData),
-  updateAssessment: (id: string, assessmentData: any) =>
-    api.put(`/assessments/${id}`, assessmentData),
-  deleteAssessment: (id: string) => api.delete(`/assessments/${id}`),
-};
-
-export const submissionAPI = {
-  getSubmissions: () => api.get("/submission"),
-  createSubmission: (submissionData: any) =>
-    api.post("/submission", submissionData),
-  updateSubmission: (id: string, submissionData: any) =>
-    api.put(`/submission/${id}`, submissionData),
-  gradeSubmission: (id: string, grade: number) =>
-    api.put(`/submission/${id}/grade`, { grade }),
-};
-
-export const certificateAPI = {
-  getCertificates: () => api.get("/certificates"),
-  getCertificate: (id: string) => api.get(`/certificates/${id}`),
-  generateCertificate: (courseId: string) =>
-    api.post(`/certificates/generate/${courseId}`),
-};
-
-export const statsAPI = {
-  getStats: () => api.get("/stats"),
-  getCourseStats: (courseId: string) => api.get(`/stats/course/${courseId}`),
-  getUserStats: (userId: string) => api.get(`/stats/user/${userId}`),
-};
-
 export default api;
+
+export { assessmentAPI } from "./assessmentServices";
+export { authAPI } from "./authServices";
+export { categoryAPI } from "./categoryAPI";
+export { certificateAPI } from "./certificateServices";
+export { courseAPI } from "./courseServices";
+export { enrollmentAPI } from "./enrollmentServices";
+export { lessonAPI } from "./lessonServices";
+export { progressAPI } from "./progressServices";
+export { statsAPI } from "./statsServices";
+export { submissionAPI } from "./submissionServices";
+export { transactionAPI } from "./transactionServices";
+export { userAPI } from "./userServices";

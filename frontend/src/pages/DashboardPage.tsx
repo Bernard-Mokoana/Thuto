@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import StatCard from '../components/dashboard/StatCard';
+import { useAuth } from '../contexts/useAuth';
 import { enrollmentAPI } from '../services/api';
 import type { Enrollment } from '../types/models';
 
@@ -86,41 +87,10 @@ const DashboardPage: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Courses</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedCourses}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Time Spent</p>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(stats.totalTimeSpent / 60)}h</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Certificates</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.certificatesEarned}</p>
-              </div>
-            </div>
-          </div>
+          <StatCard label="Total Courses" value={stats.totalCourses} />
+          <StatCard label="Completed" value={stats.completedCourses} />
+          <StatCard label="Time Spent" value={`${Math.round(stats.totalTimeSpent / 60)}h`} />
+          <StatCard label="Certificates" value={stats.certificatesEarned} />
         </div>
 
         {/* Recent Activity */}

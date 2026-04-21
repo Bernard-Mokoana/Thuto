@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import StatCard from '../components/dashboard/StatCard';
+import { useAuth } from '../contexts/useAuth';
 import { courseAPI } from '../services/api';
 import type { Course } from '../types/models';
 
@@ -81,25 +82,10 @@ const TutorDashboardPage: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Total Courses</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Published</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.publishedCourses}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Total Students</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalStudents}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-            <p className="text-2xl font-bold text-gray-900">R{stats.totalRevenue}</p>
-          </div>
+          <StatCard label="Total Courses" value={stats.totalCourses} />
+          <StatCard label="Published" value={stats.publishedCourses} />
+          <StatCard label="Total Students" value={stats.totalStudents} />
+          <StatCard label="Total Revenue" value={`R${stats.totalRevenue}`} />
         </div>
 
         {/* Courses Section */}

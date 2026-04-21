@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import AuthPageShell from '../components/auth/AuthPageShell';
+import FormMessage from '../components/auth/FormMessage';
+import SubmitButton from '../components/auth/SubmitButton';
 import api from '../services/api';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,35 +21,26 @@ const ForgotPasswordPage: React.FC = () => {
     try {
       await api.post('/auth/forgot-password', { email });
       setSuccess('Password reset link sent to your email.');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred. Please try again.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'An error occurred. Please try again.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Forgot Your Password?
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter your email address and we will send you a link to reset your password.
-          </p>
-        </div>
+    <AuthPageShell
+      title="Forgot Your Password?"
+      subtitle="Enter your email address and we will send you a link to reset your password."
+      footer={
+        <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+          Back to login
+        </Link>
+      }
+    >
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-              {success}
-            </div>
-          )}
+          {error ? <FormMessage variant="error" message={error} /> : null}
+          {success ? <FormMessage variant="success" message={success} /> : null}
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -66,26 +61,10 @@ const ForgotPasswordPage: React.FC = () => {
           </div>
 
           <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : (
-                'Send Reset Link'
-              )}
-            </button>
+            <SubmitButton loading={loading} label="Send Reset Link" />
           </div>
         </form>
-        <div className="text-sm text-center">
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            Back to login
-          </Link>
-        </div>
-      </div>
-    </div>
+    </AuthPageShell>
   );
 };
 

@@ -4,11 +4,15 @@ export const userAPI = {
   getUsers: () => api.get("/users"),
   getUser: (id: string) => api.get(`/users/${id}`),
   getProfile: (id: string) => api.get(`/users/profile/${id}`),
-  updateUser: (id: string, userData: any) =>
+  updateUser: (id: string, userData: FormData | Record<string, unknown>) =>
     api.put(`users/profile/${id}`, userData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      ...(userData instanceof FormData
+        ? {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        : {}),
     }),
   updateUserRole: (id: string, role: "Student" | "Tutor" | "Admin") =>
     api.patch(`/users/${id}/role`, { role }),

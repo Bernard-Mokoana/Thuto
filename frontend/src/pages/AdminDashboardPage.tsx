@@ -8,7 +8,8 @@ import {
   transactionAPI,
   userAPI,
 } from "../services/api";
-import type { Course, User, UserRole, TransactionRecord } from "../types/models";
+import type { Course, User, UserRole, TransactionRecord, DeleteTarget } from "../types/models";
+
 
 
 const AdminDashboardPage = () => {
@@ -21,6 +22,7 @@ const AdminDashboardPage = () => {
   const [processingCourseId, setProcessingCourseId] = useState<string | null>(
     null
   );
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
   const fetchDashboardData = async () => {
     try {
@@ -93,14 +95,24 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm("Delete this user permanently?")) return;
+  const handleDelete = (type: NonNullable<DeleteTarget>["type"], id: string) => {
+    setDeleteTarget({ type, id });
+  };
 
+  const cancelDelete = () => {
+    if (processingUserId || processingCourseId) {
+      return;
+    }
+    setDeleteTarget(null);
+  };
+
+  const confirmUserDelete = async (userId: string) => {
     try {
       setProcessingUserId(userId);
       await userAPI.deleteUser(userId);
       setUsers((prev) => prev.filter((item) => item._id !== userId));
-      toast.success("User deleted");
+      toast.success("User deleted successfully");
+      setDeleteTarget(null);
     } catch (error) {
       const message = axios.isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message || "Failed to delete user"
@@ -109,6 +121,36 @@ const AdminDashboardPage = () => {
     } finally {
       setProcessingUserId(null);
     }
+  };
+
+  const confirmCourseDelete = async (courseId: string) => {
+    try {
+      setProcessingCourseId(courseId);
+      await courseAPI.deleteCourse(courseId);
+      setCourses((prev) => prev.filter((item) => item._id !== courseId));
+      toast.success("Course deleted successfully");
+      setDeleteTarget(null);
+    } catch (error) {
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message || "Failed to delete course"
+        : "Failed to delete course";
+      toast.error(message);
+    } finally {
+      setProcessingCourseId(null);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    if (deleteTarget.type === "user") {
+      await confirmUserDelete(deleteTarget.id);
+      return;
+    }
+
+    await confirmCourseDelete(deleteTarget.id);
   };
 
   const handleTogglePublish = async (courseId: string, nextStatus: boolean) => {
@@ -127,24 +169,6 @@ const AdminDashboardPage = () => {
       const message = axios.isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message || "Failed to update course status"
         : "Failed to update course status";
-      toast.error(message);
-    } finally {
-      setProcessingCourseId(null);
-    }
-  };
-
-  const handleDeleteCourse = async (courseId: string) => {
-    if (!window.confirm("Delete this course permanently?")) return;
-
-    try {
-      setProcessingCourseId(courseId);
-      await courseAPI.deleteCourse(courseId);
-      setCourses((prev) => prev.filter((item) => item._id !== courseId));
-      toast.success("Course deleted");
-    } catch (error) {
-      const message = axios.isAxiosError<{ message?: string }>(error)
-        ? error.response?.data?.message || "Failed to delete course"
-        : "Failed to delete course";
       toast.error(message);
     } finally {
       setProcessingCourseId(null);
@@ -266,7 +290,7 @@ const AdminDashboardPage = () => {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => handleDeleteUser(item._id)}
+                        onClick={() => handleDelete("user", item._id)}
                         disabled={processingUserId === item._id}
                         className="px-3 py-1 text-red-600 border border-red-200 rounded-md hover:bg-red-50 disabled:opacity-60"
                       >
@@ -340,7 +364,7 @@ const AdminDashboardPage = () => {
                           {item.isPublished ? "Unpublish" : "Publish"}
                         </button>
                         <button
-                          onClick={() => handleDeleteCourse(item._id)}
+                          onClick={() => handleDelete("course", item._id)}
                           disabled={processingCourseId === item._id}
                           className="px-3 py-1 text-red-600 border border-red-200 rounded-md hover:bg-red-50 disabled:opacity-60"
                         >
@@ -355,6 +379,37 @@ const AdminDashboardPage = () => {
           </div>
         </section>
       </div>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/25 px-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="px-6 pt-6 pb-5 text-center">
+              <h3 className="text-2xl font-bold text-gray-700">
+                Delete {deleteTarget.type === "user" ? "User" : "Course"}
+              </h3>
+              <p className="mt-3 text-lg text-gray-700">
+                Are you sure you want to delete this {deleteTarget.type}?
+              </p>
+            </div>
+            <div className="flex border-t border-gray-200">
+              <button
+                onClick={cancelDelete}
+                disabled={Boolean(processingUserId || processingCourseId)}
+                className="w-1/2 border-r border-gray-200 py-3 text-xl font-medium text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={Boolean(processingUserId || processingCourseId)}
+                className="w-1/2 py-3 text-xl font-semibold text-red-600 transition-colors hover:bg-gray-50 disabled:opacity-60"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

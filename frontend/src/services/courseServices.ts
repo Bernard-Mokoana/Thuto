@@ -30,7 +30,7 @@ export const courseAPI = {
           }
         : {}),
     }),
-  deleteCourse: (id: string) => api.delete(`/course/${id}`),
+  deleteCourse: (id: string) => api.delete(`/courses/${id}`),
   adminTogglePublish: (id: string, isPublished: boolean) =>
     api.patch(`courses/admin/${id}/publish`, { isPublished }),
 };

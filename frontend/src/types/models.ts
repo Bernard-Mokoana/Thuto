@@ -2,6 +2,10 @@ export type UserRole = "Student" | "Tutor" | "Admin";
 export type AssessmentType = "quiz" | "assessment" | "exam";
 export type TransactionStatus = "pending" | "success" | "failed";
 export type TransactionMethod = "eft" | "card" | "cash" | "wallet";
+export type DeleteTarget =
+  | { type: "user"; id: string }
+  | { type: "course"; id: string }
+  | null;
 
 export interface User {
   _id: string;
@@ -92,7 +96,7 @@ export interface AssessmentQuestion {
 
 export interface CreateAssessment {
   lesson: string;
-  questions: assessmentQuestion[];
+  questions: AssessmentQuestion[];
   type?: AssessmentType;
 }
 

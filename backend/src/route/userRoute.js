@@ -6,7 +6,7 @@ import {
 } from "../controller/userController.js";
 import express from "express";
 import { verifyJwt, adminOnly } from "../middleware/authMiddleware.js";
-import { upload } from "../utils/s3Config.utils.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = express.Router();
 

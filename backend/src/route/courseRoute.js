@@ -14,7 +14,7 @@ import {
   studentOnly,
   tutorOrAdmin,
 } from "../middleware/authMiddleware.js";
-import { upload } from "../utils/s3Config.utils.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = express.Router();
 
@@ -24,9 +24,7 @@ router
   .post(verifyJwt, tutorOrAdmin, upload.single("thumbnail"), createCourse);
 
 router.route("/tutor").get(verifyJwt, tutorOnly, getTutorCourses);
-router
-  .route("/tutor/:id")
-  .get(verifyJwt, tutorOnly, getTutorCourseById);
+router.route("/tutor/:id").get(verifyJwt, tutorOnly, getTutorCourseById);
 
 router
   .route("/:id")

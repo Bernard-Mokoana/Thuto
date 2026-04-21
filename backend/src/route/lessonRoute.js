@@ -7,7 +7,7 @@ import {
   deleteLesson,
 } from "../controller/lessonController.js";
 import { verifyJwt, tutorOnly } from "../middleware/authMiddleware.js";
-import { upload } from "../utils/s3Config.utils.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = express.Router();
 

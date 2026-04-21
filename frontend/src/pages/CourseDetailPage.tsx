@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
-import type { Course, Lesson } from '../types/models';
+import { useAuth } from '../contexts/useAuth';
+import type { Course, Enrollment, Lesson } from '../types/models';
 
 const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,9 +70,10 @@ const CourseDetailPage: React.FC = () => {
         if (isAuthenticated && user && isStudent) {
           try {
             const enrollmentsResponse = await enrollmentAPI.getEnrollments();
-            const userEnrollments = enrollmentsResponse.data.enrollments || [];
-            const enrolled = userEnrollments.some((enrollment: any) =>
-              enrollment.course._id === id
+            const userEnrollments: Enrollment[] =
+              enrollmentsResponse.data.enrollments || [];
+            const enrolled = userEnrollments.some(
+              (enrollment) => enrollment.course?._id === id
             );
             setIsEnrolled(enrolled);
           } catch (error) {

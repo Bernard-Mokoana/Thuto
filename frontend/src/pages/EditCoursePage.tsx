@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { categoryAPI, courseAPI, lessonAPI } from "../services/api";
-import type { Category } from "../types/models";
+import type { Category, Lesson } from "../types/models";
+import { getErrorMessage } from "../utils/errorMessage";
 
 interface EditableLesson {
   localId: string;
@@ -52,8 +53,7 @@ const EditCoursePage: React.FC = () => {
         const lessonsResponse = await lessonAPI.getLessons(id);
 
         const course = courseResponse.data.course;
-        const fetchedLessons = (lessonsResponse.data?.Lessons ||
-          []) as EditableLesson[];
+        const fetchedLessons = (lessonsResponse.data?.Lessons || []) as Lesson[];
 
         setCategories(categoryResponse.data.categories || []);
         setLessons(
@@ -81,10 +81,8 @@ const EditCoursePage: React.FC = () => {
           level: course?.level || "beginner",
           existingThumbnail: course?.thumbnail || "",
         }));
-      } catch (error: any) {
-        const message =
-          error.response?.data?.message || "Failed to load course details.";
-        toast.error(message);
+      } catch (error: unknown) {
+        toast.error(getErrorMessage(error, "Failed to load course details."));
         navigate("/tutor-dashboard");
       } finally {
         setLoading(false);
@@ -168,10 +166,8 @@ const EditCoursePage: React.FC = () => {
 
       toast.success("Course updated successfully.");
       navigate(`/courses/${id}/publish`);
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || "Failed to update course.";
-      toast.error(message);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to update course."));
     } finally {
       setSaving(false);
     }
@@ -232,10 +228,8 @@ const EditCoursePage: React.FC = () => {
         await lessonAPI.deleteLesson(lesson._id);
         setLessons((prev) => prev.filter((item) => item.localId !== localId));
         toast.success("Lesson deleted.");
-      } catch (error: any) {
-        const message =
-          error.response?.data?.message || "Failed to delete lesson.";
-        toast.error(message);
+      } catch (error: unknown) {
+        toast.error(getErrorMessage(error, "Failed to delete lesson."));
       }
       return;
     }

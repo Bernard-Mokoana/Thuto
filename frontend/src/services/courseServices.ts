@@ -20,7 +20,7 @@ export const courseAPI = {
         "Content-Type": "multipart/form-data",
       },
     }),
-  updateCourse: (id: string, courseData: Course | FormData) =>
+  updateCourse: (id: string, courseData: Partial<Course> | FormData) =>
     api.put(`/courses/${id}`, courseData, {
       ...(courseData instanceof FormData
         ? {

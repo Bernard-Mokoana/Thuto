@@ -16,7 +16,7 @@ const CoursesPage = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const params: any = {
+        const params: Parameters<typeof courseAPI.getCourses>[0] = {
           search: searchTerm || undefined,
           level: selectedLevel || undefined,
           category: selectedCategory || undefined,

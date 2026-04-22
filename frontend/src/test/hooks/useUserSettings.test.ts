@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useUserSettings } from './useUserSettings';
+import { useUserSettings } from '../../hooks/useUserSettings';
 
 const USER_ID = 'user-123';
 const STORAGE_KEY = `userSettings:${USER_ID}`;

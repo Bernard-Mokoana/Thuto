@@ -2,14 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import ChangePasswordPage from './ChangePasswordPage';
-import * as useAuthModule from '../contexts/useAuth';
+import ChangePasswordPage from '../../pages/ChangePasswordPage';
+import * as useAuthModule from '../../contexts/useAuth';
 
-vi.mock('../contexts/useAuth');
+vi.mock('../../contexts/useAuth');
+vi.mock('react-toastify', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
 
 const mockUpdateUser = vi.fn();
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   userAPI: {
     updateUser: (...args: unknown[]) => mockUpdateUser(...args),
   },
@@ -35,9 +42,9 @@ const buildAuth = () => ({
 });
 
 beforeEach(() => {
+  vi.clearAllMocks();
   vi.mocked(useAuthModule.useAuth).mockReturnValue(buildAuth());
   mockUpdateUser.mockReset();
-  vi.spyOn(window, 'alert').mockImplementation(() => {});
 });
 
 const renderPage = () =>
@@ -69,7 +76,8 @@ describe('ChangePasswordPage', () => {
     expect(screen.getByRole('link', { name: 'Back to Profile' })).toBeInTheDocument();
   });
 
-  it('shows alert if password is shorter than 6 characters', async () => {
+  it('shows warning if password is shorter than 6 characters', async () => {
+    const { toast } = await import('react-toastify');
     const user = userEvent.setup();
     renderPage();
 
@@ -77,11 +85,12 @@ describe('ChangePasswordPage', () => {
     await user.type(screen.getByLabelText('Confirm Password'), 'abc');
     await user.click(screen.getByRole('button', { name: 'Update Password' }));
 
-    expect(window.alert).toHaveBeenCalledWith('Password must be at least 6 characters.');
+    expect(toast.warn).toHaveBeenCalledWith('Password must be at least 6 characters.');
     expect(mockUpdateUser).not.toHaveBeenCalled();
   });
 
-  it('shows alert when passwords do not match', async () => {
+  it('shows warning when passwords do not match', async () => {
+    const { toast } = await import('react-toastify');
     const user = userEvent.setup();
     renderPage();
 
@@ -89,7 +98,7 @@ describe('ChangePasswordPage', () => {
     await user.type(screen.getByLabelText('Confirm Password'), 'password2');
     await user.click(screen.getByRole('button', { name: 'Update Password' }));
 
-    expect(window.alert).toHaveBeenCalledWith('Passwords do not match.');
+    expect(toast.warn).toHaveBeenCalledWith('Password do not match.');
     expect(mockUpdateUser).not.toHaveBeenCalled();
   });
 
@@ -107,7 +116,8 @@ describe('ChangePasswordPage', () => {
     );
   });
 
-  it('shows success alert on successful update', async () => {
+  it('shows success toast on successful update', async () => {
+    const { toast } = await import('react-toastify');
     const user = userEvent.setup();
     mockUpdateUser.mockResolvedValueOnce({ data: {} });
     renderPage();
@@ -117,11 +127,12 @@ describe('ChangePasswordPage', () => {
     await user.click(screen.getByRole('button', { name: 'Update Password' }));
 
     await waitFor(() =>
-      expect(window.alert).toHaveBeenCalledWith('Password updated successfully!')
+      expect(toast.success).toHaveBeenCalledWith('Password updated successfully!')
     );
   });
 
-  it('shows failure alert when API throws', async () => {
+  it('shows error toast when API throws', async () => {
+    const { toast } = await import('react-toastify');
     const user = userEvent.setup();
     mockUpdateUser.mockRejectedValueOnce(new Error('Network error'));
     renderPage();
@@ -131,7 +142,7 @@ describe('ChangePasswordPage', () => {
     await user.click(screen.getByRole('button', { name: 'Update Password' }));
 
     await waitFor(() =>
-      expect(window.alert).toHaveBeenCalledWith(
+      expect(toast.error).toHaveBeenCalledWith(
         'Failed to update password. Please try again.'
       )
     );

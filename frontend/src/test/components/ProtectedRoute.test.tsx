@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import ProtectedRoute from './ProtectedRoute';
-import * as useAuthModule from '../contexts/useAuth';
+import ProtectedRoute from '../../components/ProtectedRoute';
+import * as useAuthModule from '../../contexts/useAuth';
 
-vi.mock('../contexts/useAuth');
+vi.mock('../../contexts/useAuth');
 
 const buildAuth = (overrides: Partial<ReturnType<typeof useAuthModule.useAuth>>) => ({
   user: null,

@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import LoginPage from './LoginPage';
-import * as useAuthModule from '../contexts/useAuth';
+import LoginPage from '../../pages/LoginPage';
+import * as useAuthModule from '../../contexts/useAuth';
 
-vi.mock('../contexts/useAuth');
+vi.mock('../../contexts/useAuth');
 vi.mock('react-toastify', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockNavigate = vi.fn();

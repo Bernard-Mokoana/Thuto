@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import EmailNotificationsPage from './EmailNotificationsPage';
-import * as useAuthModule from '../contexts/useAuth';
+import EmailNotificationsPage from '../../pages/EmailNotificationsPage';
+import * as useAuthModule from '../../contexts/useAuth';
 
-vi.mock('../contexts/useAuth');
+vi.mock('../../contexts/useAuth');
 
 const USER_ID = 'user-42';
 const STORAGE_KEY = `userSettings:${USER_ID}`;

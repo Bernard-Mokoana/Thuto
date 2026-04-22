@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getErrorMessage } from './errorMessage';
+import { getErrorMessage } from '../../utils/errorMessage';
 
 describe('getErrorMessage', () => {
   it('returns the server message when error has response.data.message string', () => {

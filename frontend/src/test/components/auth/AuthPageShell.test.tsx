@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import AuthPageShell from './AuthPageShell';
+import AuthPageShell from '../../../components/auth/AuthPageShell';
 
 describe('AuthPageShell', () => {
   it('renders the title', () => {

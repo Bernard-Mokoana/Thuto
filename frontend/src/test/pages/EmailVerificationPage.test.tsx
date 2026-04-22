@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import EmailVerificationPage from './EmailVerificationPage';
+import EmailVerificationPage from '../../pages/EmailVerificationPage';
 
 const mockGet = vi.fn();
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   default: {
     post: vi.fn(),
     get: (...args: unknown[]) => mockGet(...args),

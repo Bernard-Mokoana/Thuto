@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import FormMessage from './FormMessage';
+import FormMessage from '../../../components/auth/FormMessage';
 
 describe('FormMessage', () => {
   it('renders the message text', () => {

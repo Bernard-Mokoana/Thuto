@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import SettingsPageHeader from './SettingsPageHeader';
+import SettingsPageHeader from '../../../components/settings/SettingsPageHeader';
 
 const renderWithRouter = (ui: React.ReactNode) =>
   render(<MemoryRouter>{ui}</MemoryRouter>);

@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import DashboardPage from './DashboardPage';
-import * as useAuthModule from '../contexts/useAuth';
+import DashboardPage from '../../pages/DashboardPage';
+import * as useAuthModule from '../../contexts/useAuth';
 
-vi.mock('../contexts/useAuth');
-vi.mock('../services/api', () => ({
+vi.mock('../../contexts/useAuth');
+vi.mock('../../services/api', () => ({
   enrollmentAPI: {
     getEnrollments: vi.fn(),
   },
 }));
 
-import { enrollmentAPI } from '../services/api';
+import { enrollmentAPI } from '../../services/api';
 
 const mockEnrollmentAPI = vi.mocked(enrollmentAPI);
 

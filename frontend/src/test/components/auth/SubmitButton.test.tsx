@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import SubmitButton from './SubmitButton';
+import SubmitButton from '../../../components/auth/SubmitButton';
 
 describe('SubmitButton', () => {
   it('renders label text when not loading', () => {

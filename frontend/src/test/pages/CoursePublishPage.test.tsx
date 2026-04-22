@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import CoursePublishPage from './CoursePublishPage';
+import CoursePublishPage from '../../pages/CoursePublishPage';
 
 vi.mock('react-toastify', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -11,7 +11,7 @@ vi.mock('react-toastify', () => ({
 const mockGetTutorCourse = vi.fn();
 const mockUpdateCourse = vi.fn();
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   courseAPI: {
     getTutorCourse: (id: string) => mockGetTutorCourse(id),
     updateCourse: (id: string, data: unknown) => mockUpdateCourse(id, data),

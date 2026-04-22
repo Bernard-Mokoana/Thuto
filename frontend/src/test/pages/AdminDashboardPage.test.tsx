@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import AdminDashboardPage from './AdminDashboardPage';
+import AdminDashboardPage from '../../pages/AdminDashboardPage';
 
 vi.mock('react-toastify', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -14,7 +14,7 @@ const mockDeleteUser = vi.fn();
 const mockDeleteCourse = vi.fn();
 const mockAdminTogglePublish = vi.fn();
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   userAPI: {
     getUsers: () => mockGetUsers(),
     deleteUser: (id: string) => mockDeleteUser(id),
@@ -74,8 +74,6 @@ beforeEach(() => {
   mockGetTransactions.mockResolvedValue({
     data: { transaction: [mockTransaction] },
   });
-
-  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
 
 const renderPage = () =>
@@ -116,12 +114,12 @@ describe('AdminDashboardPage', () => {
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     // First delete button should be for the user
     await user.click(deleteButtons[0]);
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
     await waitFor(() => expect(mockDeleteUser).toHaveBeenCalledWith('u1'));
   });
 
-  it('does not call deleteUser when confirm returns false', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+  it('does not call deleteUser when delete is cancelled', async () => {
     const user = userEvent.setup();
     renderPage();
 
@@ -129,6 +127,7 @@ describe('AdminDashboardPage', () => {
 
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]);
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
   });
@@ -143,6 +142,7 @@ describe('AdminDashboardPage', () => {
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     // Last delete button is for the course
     await user.click(deleteButtons[deleteButtons.length - 1]);
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
     await waitFor(() => expect(mockDeleteCourse).toHaveBeenCalledWith('c1'));
   });

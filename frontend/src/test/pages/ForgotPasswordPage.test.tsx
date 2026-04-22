@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import ForgotPasswordPage from './ForgotPasswordPage';
+import ForgotPasswordPage from '../../pages/ForgotPasswordPage';
 
 const mockPost = vi.fn();
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   default: {
     post: (...args: unknown[]) => mockPost(...args),
     get: vi.fn(),

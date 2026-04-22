@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { AuthContext, type AuthContextType } from '../../contexts/auth-context';
 import { useAuth } from '../../contexts/useAuth';
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 
 const mockAuthValue: AuthContextType = {
   user: null,
@@ -54,7 +54,6 @@ describe('AuthContext', () => {
   it('is created with undefined as default value', () => {
     // Accessing context outside a provider should give undefined
     const { result } = renderHook(() => {
-      const { useContext } = require('react') as typeof import('react');
       return useContext(AuthContext);
     });
     expect(result.current).toBeUndefined();

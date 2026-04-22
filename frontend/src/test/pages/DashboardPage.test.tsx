@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import DashboardPage from '../../pages/DashboardPage';
 import * as useAuthModule from '../../contexts/useAuth';
 
@@ -14,6 +15,16 @@ vi.mock('../../services/api', () => ({
 import { enrollmentAPI } from '../../services/api';
 
 const mockEnrollmentAPI = vi.mocked(enrollmentAPI);
+
+const createEnrollmentsResponse = (
+  enrollments: unknown[]
+): AxiosResponse<{ enrollments: unknown[] }> => ({
+  data: { enrollments },
+  status: 200,
+  statusText: 'OK',
+  headers: {},
+  config: {} as InternalAxiosRequestConfig,
+});
 
 const studentUser = {
   _id: '1',
@@ -54,9 +65,7 @@ describe('DashboardPage', () => {
   });
 
   it('renders welcome message with user first name', async () => {
-    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce({
-      data: { enrollments: [] },
-    });
+    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce(createEnrollmentsResponse([]));
     renderPage();
     await waitFor(() =>
       expect(screen.getByText('Welcome back, Alice!')).toBeInTheDocument()
@@ -64,9 +73,7 @@ describe('DashboardPage', () => {
   });
 
   it('renders stat cards after load', async () => {
-    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce({
-      data: { enrollments: [] },
-    });
+    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce(createEnrollmentsResponse([]));
     renderPage();
     await waitFor(() => {
       expect(screen.getByText('Total Courses')).toBeInTheDocument();
@@ -77,9 +84,7 @@ describe('DashboardPage', () => {
   });
 
   it('shows No courses yet when enrollments are empty', async () => {
-    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce({
-      data: { enrollments: [] },
-    });
+    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce(createEnrollmentsResponse([]));
     renderPage();
     await waitFor(() =>
       expect(screen.getByText('No courses yet')).toBeInTheDocument()
@@ -100,9 +105,9 @@ describe('DashboardPage', () => {
       progress: [],
       enrolledAt: new Date().toISOString(),
     };
-    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce({
-      data: { enrollments: [enrollment] },
-    });
+    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce(
+      createEnrollmentsResponse([enrollment])
+    );
     renderPage();
     await waitFor(() =>
       expect(screen.getByText('React Basics')).toBeInTheDocument()
@@ -123,9 +128,9 @@ describe('DashboardPage', () => {
       progress: [],
       enrolledAt: new Date().toISOString(),
     };
-    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce({
-      data: { enrollments: [enrollment] },
-    });
+    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce(
+      createEnrollmentsResponse([enrollment])
+    );
     renderPage();
     await waitFor(() => {
       // StatCard for Total Courses should show 1
@@ -136,9 +141,7 @@ describe('DashboardPage', () => {
   });
 
   it('renders Browse Courses link', async () => {
-    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce({
-      data: { enrollments: [] },
-    });
+    mockEnrollmentAPI.getEnrollments.mockResolvedValueOnce(createEnrollmentsResponse([]));
     renderPage();
     await waitFor(() => {
       const browseLinks = screen.getAllByRole('link', { name: 'Browse Courses' });

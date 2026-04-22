@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { toast } from 'react-toastify';
 
 const Navbar: React.FC = () => {
@@ -8,8 +8,27 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const isStudent = user?.role === 'Student';
   const isInstructor = user?.role === 'Tutor' || user?.role === 'Admin';
+  const isAdmin = user?.role === 'Admin';
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+    };
+  }, []);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(true);
@@ -19,6 +38,7 @@ const Navbar: React.FC = () => {
     logout();
     toast.success('User logout successfully.');
     setIsLogoutModalOpen(false);
+    setIsProfileMenuOpen(false);
     navigate('/');
   };
 
@@ -30,7 +50,8 @@ const Navbar: React.FC = () => {
     const role = user?.role;
 
     if (role === 'Student') return '/dashboard';
-    if (role === 'Tutor' || role === 'Admin') return '/tutor-dashboard';
+    if (role === 'Tutor') return '/tutor-dashboard';
+    if (role === 'Admin') return '/admin-dashboard';
     return '/';
   };
 
@@ -69,7 +90,16 @@ const Navbar: React.FC = () => {
                     to="/tutor-dashboard"
                     className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                   >
-                    Teach
+                    {isAdmin ? "Admin" : "Teach"}
+                  </Link>
+                ) : null}
+
+                {isAdmin ? (
+                  <Link
+                    to="/categories/new"
+                    className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Categories
                   </Link>
                 ) : null}
 
@@ -172,7 +202,7 @@ const Navbar: React.FC = () => {
                       className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Teach
+                      Categories
                     </Link>
                   ) : null}
 

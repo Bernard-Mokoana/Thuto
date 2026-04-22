@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { courseAPI } from "../services/api";
+import { getErrorMessage } from "../utils/errorMessage";
 
 interface CourseState {
   _id: string;
@@ -40,10 +41,8 @@ const CoursePublishPage: React.FC = () => {
         const response = await courseAPI.getTutorCourse(id);
         setCourse(response.data.course);
         setIsPublished(response.data.course?.isPublished ?? false);
-      } catch (error: any) {
-        const errorMessage =
-          error.response?.data?.message || "Failed to load course details.";
-        toast.error(errorMessage);
+      } catch (error: unknown) {
+        toast.error(getErrorMessage(error, "Failed to load course details."));
       } finally {
         setLoading(false);
       }
@@ -66,11 +65,10 @@ const CoursePublishPage: React.FC = () => {
       toast.success(
         nextValue ? "Course published successfully." : "Course unpublished."
       );
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Failed to update publish status. Please try again.";
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(
+        getErrorMessage(error, "Failed to update publish status. Please try again.")
+      );
     } finally {
       setSaving(false);
     }

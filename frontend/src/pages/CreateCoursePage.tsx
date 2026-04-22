@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { courseAPI, categoryAPI, lessonAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import type { Category } from '../types/models';
+import { getErrorMessage } from '../utils/errorMessage';
 
 interface LessonDraft {
   title: string;
@@ -162,9 +163,10 @@ const CreateCoursePage: React.FC = () => {
       } else {
         navigate('/tutor-dashboard');
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'An error occurred while creating the course.';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(
+        getErrorMessage(error, 'An error occurred while creating the course.')
+      );
     } finally {
       setLoading(false);
     }
@@ -374,7 +376,7 @@ const CreateCoursePage: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="button"
-              onClick={() => navigate('/tutor/dashboard')}
+              onClick={() => navigate('/tutor-dashboard')}
               className="mr-4 px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Cancel

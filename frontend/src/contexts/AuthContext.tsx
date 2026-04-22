@@ -1,31 +1,41 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { authAPI, userAPI } from "../services/api";
 import { toast } from "react-toastify";
 import type { User } from "../types/models";
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: FormData) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+import { AuthContext } from "./auth-context";
 
 interface AuthProviderProps {
   children: ReactNode;
 }
+
+const getTokenExpiryTime = (token: string) => {
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return null;
+
+    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(paddedBase64));
+
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+};
+
+const clearAuthStorage = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+};
+
+const persistUser = (nextUser: User | null) => {
+  if (nextUser) {
+    localStorage.setItem("user", JSON.stringify(nextUser));
+  } else {
+    localStorage.removeItem("user");
+  }
+};
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
@@ -38,7 +48,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     null
   );
 
-  const clearSessionTimers = () => {
+  const clearSessionTimers = useCallback(() => {
     if (warningTimeoutRef.current) {
       clearTimeout(warningTimeoutRef.current);
       warningTimeoutRef.current = null;
@@ -53,24 +63,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
     }
-  };
+  }, []);
 
-  const getTokenExpiryTime = (token: string) => {
-    try {
-      const payloadPart = token.split(".")[1];
-      if (!payloadPart) return null;
-
-      const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
-      const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-      const payload = JSON.parse(atob(paddedBase64));
-
-      return typeof payload.exp === "number" ? payload.exp * 1000 : null;
-    } catch {
-      return null;
-    }
-  };
-
-  const startCountdown = (expiryTime: number) => {
+  const startCountdown = useCallback((expiryTime: number) => {
     const getRemainingSeconds = () =>
       Math.max(0, Math.ceil((expiryTime - Date.now()) / 1000));
 
@@ -89,25 +84,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         countdownIntervalRef.current = null;
       }
     }, 1000);
-  };
+  }, []);
 
-  const clearAuthStorage = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-  };
-
-  const handleSessionExpired = () => {
+  const handleSessionExpired = useCallback(() => {
     clearSessionTimers();
     clearAuthStorage();
     setShowSessionExpiryModal(false);
     setUser(null);
     toast.error("Session expired. Please log in again.");
     authAPI.logout().catch(() => {
-      // Ignore logout errors
     });
-  };
+  }, [clearSessionTimers]);
 
-  const scheduleSessionExpiryWarning = () => {
+  const scheduleSessionExpiryWarning = useCallback(() => {
     clearSessionTimers();
 
     const token = localStorage.getItem("token");
@@ -135,7 +124,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     expiryTimeoutRef.current = setTimeout(handleSessionExpired, expiryTime - now);
-  };
+  }, [clearSessionTimers, handleSessionExpired, startCountdown]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -146,7 +135,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       userAPI
         .getProfile(parsedUser._id)
         .then((response) => {
-          setUser(response.data.user);
+          const refreshedUser = response.data.user;
+          setUser(refreshedUser);
+          persistUser(refreshedUser);
         })
         .catch(() => {
           localStorage.removeItem("token");
@@ -161,31 +152,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await authAPI.login({ email, password });
-      const { accessToken, user: userData } = response.data;
+    const response = await authAPI.login({ email, password });
+    const { accessToken, user: userData } = response.data;
 
-      localStorage.setItem("token", accessToken);
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
-      scheduleSessionExpiryWarning();
-    } catch (error) {
-      throw error;
-    }
+    localStorage.setItem("token", accessToken);
+    persistUser(userData);
+    setUser(userData);
+    scheduleSessionExpiryWarning();
   };
 
   const register = async (userData: FormData) => {
-    try {
-      const response = await authAPI.register(userData);
-      const { token, user: newUser } = response.data;
+    await authAPI.register(userData);
+  };
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(newUser));
-      setUser(newUser);
-      scheduleSessionExpiryWarning();
-    } catch (error) {
-      throw error;
-    }
+  const refreshUser = async (userId?: string) => {
+    const targetUserId = userId || user?._id;
+    if (!targetUserId) return null;
+
+    const response = await userAPI.getProfile(targetUserId);
+    const refreshedUser = response.data.user;
+    setUser(refreshedUser);
+    persistUser(refreshedUser);
+    return refreshedUser;
   };
 
   const logout = () => {
@@ -194,7 +182,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     clearAuthStorage();
     setUser(null);
     authAPI.logout().catch(() => {
-      // Ignore logout errors
     });
   };
 
@@ -209,13 +196,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       clearSessionTimers();
     };
-  }, [user]);
+  }, [user, clearSessionTimers, scheduleSessionExpiryWarning]);
 
   const value = {
     user,
     loading,
     login,
     register,
+    refreshUser,
     logout,
     isAuthenticated: !!user,
   };

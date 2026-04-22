@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import StatCard from '../components/dashboard/StatCard';
+import { useAuth } from '../contexts/useAuth';
 import { enrollmentAPI } from '../services/api';
 import type { Enrollment } from '../types/models';
 
@@ -20,15 +21,23 @@ const DashboardPage: React.FC = () => {
       try {
         setLoading(true);
         const response = await enrollmentAPI.getEnrollments();
-        const userEnrollments = response.data.enrollments || [];
+        const rawEnrollments = Array.isArray(response.data?.enrollments)
+          ? response.data.enrollments
+          : [];
+        const userEnrollments = rawEnrollments.filter(
+          (enrollment: Enrollment | null): enrollment is Enrollment =>
+            Boolean(enrollment?._id && enrollment?.course)
+        );
         setEnrollments(userEnrollments);
 
         const totalCourses = userEnrollments.length;
         const completedCourses = userEnrollments.filter((enrollment: Enrollment) => 
           enrollment.certificateUrl
         ).length;
-        const totalTimeSpent = userEnrollments.reduce((total: number, enrollment: Enrollment) => 
-          total + enrollment.course.duration, 0
+        const totalTimeSpent = userEnrollments.reduce(
+          (total: number, enrollment: Enrollment) =>
+            total + Number(enrollment.course?.duration || 0),
+          0
         );
         const certificatesEarned = completedCourses;
 
@@ -49,9 +58,10 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   const getProgressPercentage = (enrollment: Enrollment) => {
-    if (enrollment.progress.length === 0) return 0;
-    const completedLessons = enrollment.progress.filter(p => p.completed).length;
-    return Math.round((completedLessons / enrollment.progress.length) * 100);
+    const progress = Array.isArray(enrollment.progress) ? enrollment.progress : [];
+    if (progress.length === 0) return 0;
+    const completedLessons = progress.filter(p => p.completed).length;
+    return Math.round((completedLessons / progress.length) * 100);
   };
 
   if (loading) {
@@ -77,41 +87,10 @@ const DashboardPage: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Courses</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedCourses}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Time Spent</p>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(stats.totalTimeSpent / 60)}h</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Certificates</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.certificatesEarned}</p>
-              </div>
-            </div>
-          </div>
+          <StatCard label="Total Courses" value={stats.totalCourses} />
+          <StatCard label="Completed" value={stats.completedCourses} />
+          <StatCard label="Time Spent" value={`${Math.round(stats.totalTimeSpent / 60)}h`} />
+          <StatCard label="Certificates" value={stats.certificatesEarned} />
         </div>
 
         {/* Recent Activity */}
@@ -134,10 +113,10 @@ const DashboardPage: React.FC = () => {
                               <div className="flex items-center space-x-3">
                                 <div className="flex-1">
                                   <h3 className="font-semibold text-gray-800">
-                                    {enrollment.course.title}
+                                    {enrollment.course?.title || 'Untitled Course'}
                                   </h3>
                                   <p className="text-sm text-gray-500">
-                                    {enrollment.course.level} • {enrollment.course.duration} min
+                                    {enrollment.course?.level || 'N/A'} - {Number(enrollment.course?.duration || 0)} min
                                   </p>
                                 </div>
                               </div>
@@ -158,7 +137,7 @@ const DashboardPage: React.FC = () => {
 
                             <div className="ml-4">
                               <Link
-                                to={`/courses/${enrollment.course._id}`}
+                                to={`/courses/${enrollment.course?._id || ''}`}
                                 className="bg-blue-500 text-white px-4 py-2 rounded-md inline-flex items-center text-sm hover:bg-blue-600"
                               >
                                 Continue
@@ -202,13 +181,13 @@ const DashboardPage: React.FC = () => {
                   <span>Browse Courses</span>
                 </Link>
                 <Link
-                  to="/profile"
+                  to="/certificates"
                   className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <span>View Certificates</span>
                 </Link>
                 <Link
-                  to="/profile"
+                  to="/progress"
                   className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <span>View Progress</span>
@@ -228,7 +207,7 @@ const DashboardPage: React.FC = () => {
                       <div key={enrollment._id} className="flex items-center space-x-3">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-800">
-                            Enrolled in {enrollment.course.title}
+                            Enrolled in {enrollment.course?.title || 'Untitled Course'}
                           </p>
                           <p className="text-xs text-gray-500">
                             {new Date(enrollment.enrolledAt).toLocaleDateString()}

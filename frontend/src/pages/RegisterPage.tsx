@@ -224,9 +224,9 @@ const RegisterPage: React.FC = () => {
               />
               <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
                 I agree to the{' '}
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                <Link to="/terms" className="font-medium text-blue-600 hover:text-blue-500">
                   Terms of Service
-                </a>
+                </Link>
               </label>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { userAPI } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser, logout } = useAuth();
@@ -54,10 +55,10 @@ const ProfilePage: React.FC = () => {
       }
       setProfileImageFile(null);
       setIsEditing(false);
-      alert('Profile updated successfully!');
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      toast.error("Failed to update profile. Please try again");
     } finally {
       setLoading(false);
     }
@@ -84,9 +85,10 @@ const ProfilePage: React.FC = () => {
       await userAPI.deleteMe();
       logout();
       navigate('/register');
+      toast.success("Account deleted successfully");
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('Failed to delete account. Please try again.');
+      toast.error("Failed to delete account. Please try again.");
     }
   };
 

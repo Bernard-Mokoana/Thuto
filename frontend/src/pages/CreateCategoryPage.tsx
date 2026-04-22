@@ -205,7 +205,7 @@ const CreateCategoryPage = () => {
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
-              onClick={() => navigate("/tutor-dashboard")}
+              onClick={() => navigate("/admin-dashboard")}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Back

@@ -14,10 +14,13 @@ import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import EmailNotificationsPage from "./pages/EmailNotificationsPage";
 import PrivacySettingsPage from "./pages/PrivacySettingsPage";
+import CertificatesPage from "./pages/CertificatesPage";
+import ProgressPage from "./pages/ProgressPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CreateCoursePage from "./pages/CreateCoursePage";
 import EditCoursePage from "./pages/EditCoursePage";
 import CreateCategoryPage from "./pages/CreateCategoryPage";
@@ -39,6 +42,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="/verify-email" element={<EmailVerificationPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -81,6 +85,22 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["Admin"]}>
                     <CreateCategoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/certificates"
+                element={
+                  <ProtectedRoute allowedRoles={["Student"]}>
+                    <CertificatesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/progress"
+                element={
+                  <ProtectedRoute allowedRoles={["Student"]}>
+                    <ProgressPage />
                   </ProtectedRoute>
                 }
               />

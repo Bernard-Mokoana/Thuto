@@ -130,6 +130,15 @@ export interface Enrollment {
   certificateUrl?: string;
 }
 
+export interface CertificateRecord {
+  _id: string;
+  grade: number;
+  issueAt?: string;
+  createdAt?: string;
+  certificateUrl?: string;
+  course?: Pick<Course, "_id" | "title">;
+}
+
 export interface SubmissonData {
   title: string;
   content: string;

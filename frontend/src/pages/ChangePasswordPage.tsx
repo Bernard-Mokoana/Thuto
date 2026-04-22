@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import { useAuth } from '../contexts/useAuth';
+import { toast } from 'react-toastify';
 
 const ChangePasswordPage: React.FC = () => {
   const { user } = useAuth();
@@ -13,12 +14,12 @@ const ChangePasswordPage: React.FC = () => {
     e.preventDefault();
 
     if (password.length < 6) {
-      alert('Password must be at least 6 characters.');
+      toast.warn("Password must be at least 6 characters.");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match.');
+      toast.warn("Password do not match.");
       return;
     }
 
@@ -30,10 +31,10 @@ const ChangePasswordPage: React.FC = () => {
       await userAPI.updateUser(user!._id, data);
       setPassword('');
       setConfirmPassword('');
-      alert('Password updated successfully!');
+      toast.success("Password updated successfully!");
     } catch (error) {
       console.error('Error updating password:', error);
-      alert('Failed to update password. Please try again.');
+      toast.error("Failed to update password. Please try again.");
     } finally {
       setLoading(false);
     }

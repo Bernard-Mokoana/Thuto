@@ -181,13 +181,13 @@ const DashboardPage: React.FC = () => {
                   <span>Browse Courses</span>
                 </Link>
                 <Link
-                  to="/profile"
+                  to="/certificates"
                   className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <span>View Certificates</span>
                 </Link>
                 <Link
-                  to="/profile"
+                  to="/progress"
                   className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <span>View Progress</span>

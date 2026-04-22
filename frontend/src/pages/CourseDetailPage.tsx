@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
+import { certificateAPI, courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
 import { useAuth } from '../contexts/useAuth';
 import type { Course, Enrollment, Lesson } from '../types/models';
+import { toast } from 'react-toastify';
 
 const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ const CourseDetailPage: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [generatingCertificate, setGeneratingCertificate] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const isStudent = user?.role === 'Student';
@@ -27,7 +29,7 @@ const CourseDetailPage: React.FC = () => {
   const navigateToFirstLesson = () => {
     const firstLessonId = getFirstLessonId();
     if (!firstLessonId) {
-      alert('No lessons available yet.');
+      toast.warn("No lessons available yet.")
       return;
     }
     navigate(`/lessons/${firstLessonId}`);
@@ -99,7 +101,7 @@ const CourseDetailPage: React.FC = () => {
       return;
     }
     if (!isStudent) {
-      alert('Tutors and admins can instruct only. Student enrollment is not available for this account.');
+      toast.warn("Tutors and admins can instruct only. Student enrollment is not available for this account.")
       return;
     }
 
@@ -119,9 +121,45 @@ const CourseDetailPage: React.FC = () => {
         return;
       }
       console.error('Error enrolling in course:', error);
-      alert('Failed to enroll in course. Please try again.');
+      toast.error('Failed to enroll in course. Please try again.');
     } finally {
       setEnrolling(false);
+    }
+  };
+
+  const handleCertificate = async () => {
+    if (!id || !user?._id) {
+      toast.error('Unable to load certificate details.');
+      return;
+    }
+
+    try {
+      setGeneratingCertificate(true);
+      const response = await certificateAPI.generateCertificate(user._id, id);
+      const certificateUrl = response.data?.Certificate?.certificateUrl;
+
+      if (certificateUrl) {
+        window.open(certificateUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        toast.success('Certificate is ready.');
+        navigate('/certificates');
+      }
+    } catch (error) {
+      if (axios.isAxiosError<{ message?: string }>(error)) {
+        const message = error.response?.data?.message;
+
+        if (error.response?.status === 400 && message) {
+          toast.warn(message);
+          return;
+        }
+
+        toast.error(message || 'Failed to generate certificate. Please try again.');
+        return;
+      }
+
+      toast.error('Failed to generate certificate. Please try again.');
+    } finally {
+      setGeneratingCertificate(false);
     }
   };
 
@@ -319,8 +357,13 @@ const CourseDetailPage: React.FC = () => {
                       >
                         Continue Learning
                       </button>
-                      <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                        Download Certificate
+                      <button
+                        type="button"
+                        onClick={handleCertificate}
+                        disabled={generatingCertificate}
+                        className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60 flex items-center justify-center"
+                      >
+                        {generatingCertificate ? 'Preparing Certificate...' : 'Download Certificate'}
                       </button>
                     </div>
                   ) : (

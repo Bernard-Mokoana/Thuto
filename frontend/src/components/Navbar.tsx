@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import { toast } from 'react-toastify';
@@ -8,9 +8,27 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const isStudent = user?.role === 'Student';
   const isInstructor = user?.role === 'Tutor' || user?.role === 'Admin';
   const isAdmin = user?.role === 'Admin';
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+    };
+  }, []);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(true);
@@ -20,6 +38,7 @@ const Navbar: React.FC = () => {
     logout();
     toast.success('User logout successfully.');
     setIsLogoutModalOpen(false);
+    setIsProfileMenuOpen(false);
     navigate('/');
   };
 
@@ -85,8 +104,14 @@ const Navbar: React.FC = () => {
                 ) : null}
 
                 {/* User Dropdown */}
-                <div className="relative group">
-                  <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">
+                <div ref={profileMenuRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileMenuOpen((current) => !current)}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium"
+                    aria-expanded={isProfileMenuOpen}
+                    aria-haspopup="menu"
+                  >
                     {user?.profileImage ? (
                       <img
                         src={`${user.profileImage}`}
@@ -103,9 +128,14 @@ const Navbar: React.FC = () => {
                     </span>
                   </button>
                   
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                  <div
+                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 transition-all duration-200 ${
+                      isProfileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+                    }`}
+                  >
                     <Link
                       to="/profile"
+                      onClick={() => setIsProfileMenuOpen(false)}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile

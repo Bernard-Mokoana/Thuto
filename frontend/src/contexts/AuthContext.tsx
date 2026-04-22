@@ -93,7 +93,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
     toast.error("Session expired. Please log in again.");
     authAPI.logout().catch(() => {
-      // Ignore logout errors
     });
   }, [clearSessionTimers]);
 
@@ -183,7 +182,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     clearAuthStorage();
     setUser(null);
     authAPI.logout().catch(() => {
-      // Ignore logout errors
     });
   };
 

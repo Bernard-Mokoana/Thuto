@@ -376,7 +376,7 @@ const CreateCoursePage: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="button"
-              onClick={() => navigate('/tutor/dashboard')}
+              onClick={() => navigate('/tutor-dashboard')}
               className="mr-4 px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Cancel

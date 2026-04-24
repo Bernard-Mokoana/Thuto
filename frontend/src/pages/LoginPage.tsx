@@ -67,10 +67,13 @@ const LoginPage: React.FC = () => {
         </>
       }
     >
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           {error ? <FormMessage variant="error" message={error} /> : null}
           <input type="hidden" name="remember" defaultValue="true" />
-          <div className="rounded-md shadow-sm -space-y-px">
+          
+          <div className="rounded-md shadow-sm space-y-4">
+            
+            {/* Email Input */}
             <div>
               <label htmlFor="email-address" className="sr-only">
                 Email address
@@ -87,6 +90,8 @@ const LoginPage: React.FC = () => {
                 onChange={handleChange}
               />
             </div>
+
+            {/* Password Input */}
             <div>
               <label htmlFor="password" className="sr-only">
                 Password
@@ -98,7 +103,7 @@ const LoginPage: React.FC = () => {
                 placeholder="Password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full pl-3 pr-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 onChange={handleChange}
               />
             </div>

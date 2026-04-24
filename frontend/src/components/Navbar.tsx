@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import { toast } from 'react-toastify';
@@ -8,27 +8,9 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const isStudent = user?.role === 'Student';
   const isInstructor = user?.role === 'Tutor' || user?.role === 'Admin';
   const isAdmin = user?.role === 'Admin';
-
-  useEffect(() => {
-    const handleDocumentClick = (event: MouseEvent) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsProfileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleDocumentClick);
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentClick);
-    };
-  }, []);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(true);
@@ -38,7 +20,6 @@ const Navbar: React.FC = () => {
     logout();
     toast.success('User logout successfully.');
     setIsLogoutModalOpen(false);
-    setIsProfileMenuOpen(false);
     navigate('/');
   };
 

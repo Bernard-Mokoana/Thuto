@@ -16,13 +16,15 @@ const CoursesPage = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const params: any = {
+        const params: Parameters<typeof courseAPI.getCourses>[0] = {
           search: searchTerm || undefined,
           level: selectedLevel || undefined,
           category: selectedCategory || undefined,
+          sortBy,
         };
         
         const response = await courseAPI.getCourses(params);
+        
         setCourses(response.data.course || []);
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -32,7 +34,7 @@ const CoursesPage = () => {
     };
 
     fetchCourses();
-  }, [searchTerm, selectedLevel, selectedCategory]);
+  }, [searchTerm, selectedLevel, selectedCategory, sortBy]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -47,7 +49,7 @@ const CoursesPage = () => {
     fetchCategories();
   }, []);
 
-  const filteredCourses = courses.filter(course => course.isPublished);
+  const filteredCourses = courses;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -162,7 +164,7 @@ const CoursesPage = () => {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-blue-500 font-medium">
-                      {course.category?.name || 'General'}
+                      {course.category?.name || "General"}
                     </span>
                     <span className="text-sm text-gray-500 capitalize">{course.level}</span>
                   </div>

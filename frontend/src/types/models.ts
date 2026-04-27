@@ -1,4 +1,25 @@
+import type React from "react";
+
 export type UserRole = "Student" | "Tutor" | "Admin";
+export type AssessmentType = "quiz" | "assessment" | "exam";
+export type TransactionStatus = "pending" | "success" | "failed";
+export type TransactionMethod = "eft" | "card" | "cash" | "wallet";
+export type DeleteTarget =
+  | { type: "user"; id: string }
+  | { type: "course"; id: string }
+  | null;
+
+export type AuthPageShellProps = {
+  title: string;
+  subtitle?: React.ReactNode;
+  footer?: React.ReactNode;
+  children?: React.ReactNode;
+};
+
+export type FormMessageProps = {
+  variant: "error" | "success";
+  message: string;
+};
 
 export interface User {
   _id: string;
@@ -13,13 +34,52 @@ export interface User {
 export interface Category {
   _id: string;
   name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  parentCategory?: string;
+  sortOrder?: number;
+  isActive?: boolean;
 }
+
+export type PasswordInputProps = {
+  id: string;
+  name: string;
+  value: string;
+  placeholder: string;
+  autoComplete?: string;
+  required?: boolean;
+  className?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+export type SubmitButtonProps = {
+  loading: boolean;
+  label: string;
+};
+
+export type StatCardProps = {
+  label: string;
+  value: React.ReactNode;
+};
 
 export interface TutorProfile {
   _id?: string;
   firstName: string;
   lastName: string;
 }
+
+export type SettingsPageHeaderProps = {
+  title: string;
+  description: string;
+};
+
+export type ToggleSettingCardProps = {
+  label: string;
+  description: string;
+  enabled: boolean;
+  onToggle: () => void;
+};
 
 export interface Course {
   _id: string;
@@ -68,4 +128,53 @@ export interface Enrollment {
   progress: EnrollmentProgress[];
   enrolledAt: string;
   certificateUrl?: string;
+}
+
+export interface CertificateRecord {
+  _id: string;
+  grade: number;
+  issueAt?: string;
+  createdAt?: string;
+  certificateUrl?: string;
+  course?: Pick<Course, "_id" | "title">;
+}
+
+export interface SubmissonData {
+  title: string;
+  content: string;
+}
+
+export interface AssessmentQuestion {
+  question: string;
+  options: string[];
+  correctionAnswer: string;
+}
+
+export interface CreateAssessment {
+  lesson: string;
+  questions: AssessmentQuestion[];
+  type?: AssessmentType;
+}
+
+export interface Transaction {
+  _id: string;
+  student: string;
+  course: string;
+  amount: number;
+  method: TransactionMethod;
+  status: TransactionStatus;
+  reference?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionRecord {
+  _id: string;
+  amount: number;
+  status: "pending" | "success" | "failed";
+}
+
+export interface ProtectedRouteProps {
+  children: React.ReactNode;
+  allowedRoles?: string[];
 }

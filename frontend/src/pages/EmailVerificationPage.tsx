@@ -1,6 +1,7 @@
 import { useEffect, useState,useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../services/api";
+import { getErrorMessage } from "../utils/errorMessage";
 
 const EmailVerificationPage = () => {
   const [searchParams] = useSearchParams();
@@ -26,12 +27,9 @@ const EmailVerificationPage = () => {
           setStatus("success");
           setMessage("Your email has been verified successfully! You can now log in.");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
-        setMessage(
-          error.response?.data?.message ||
-            "An error occurred during verification."
-        );
+        setMessage(getErrorMessage(error, "An error occurred during verification."));
       }
     };
 

@@ -66,7 +66,7 @@ describe("User API", () => {
     });
   });
 
-  describe("POST /api/v1/users/login", () => {
+  describe("POST /api/v1/auth/login", () => {
     beforeEach(async () => {
       // Create a test user for login
       await request(app).post("/api/v1/users/register").send({
@@ -76,6 +76,11 @@ describe("User API", () => {
         password: "LoginTest@123",
         role: "Student",
       });
+
+      await user.updateOne(
+        { email: "logintest@gmail.com" },
+        { $set: { isVerified: true } }
+      );
     });
 
     it("should login a user successfully", async () => {
@@ -85,14 +90,14 @@ describe("User API", () => {
       };
 
       const res = await request(app)
-        .post("/api/v1/users/login")
+        .post("/api/v1/auth/login")
         .send(loginData);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty("token");
-      expect(res.body).toHaveProperty("refreshToken");
+      expect(res.body).toHaveProperty("accessToken");
       expect(res.body).toHaveProperty("user");
       expect(res.body.user.email).toBe("logintest@gmail.com");
+      expect(res.body.user.isVerified).toBe(true);
     });
 
     it("should fail to login with wrong password", async () => {
@@ -102,7 +107,7 @@ describe("User API", () => {
       };
 
       const res = await request(app)
-        .post("/api/v1/users/login")
+        .post("/api/v1/auth/login")
         .send(loginData);
 
       expect(res.statusCode).toBe(400);
@@ -115,7 +120,7 @@ describe("User API", () => {
       };
 
       const res = await request(app)
-        .post("/api/v1/users/login")
+        .post("/api/v1/auth/login")
         .send(loginData);
 
       expect(res.statusCode).toBe(400);
@@ -127,7 +132,7 @@ describe("User API", () => {
       };
 
       const res = await request(app)
-        .post("/api/v1/users/login")
+        .post("/api/v1/auth/login")
         .send(loginData);
 
       expect(res.statusCode).toBe(400);

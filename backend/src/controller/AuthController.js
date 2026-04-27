@@ -67,6 +67,7 @@ export const login = async (req, res) => {
         lastName: User.lastName,
         email: User.email,
         role: User.role,
+        isVerified: User.isVerified,
         profileImage: User.profileImage,
       },
     });

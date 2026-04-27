@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
+import StatCard from '../components/dashboard/StatCard';
+import { useAuth } from '../contexts/useAuth';
 import { courseAPI } from '../services/api';
 import type { Course } from '../types/models';
 
@@ -24,9 +26,9 @@ const TutorDashboardPage: React.FC = () => {
         setCourses(fetchedCourses);
 
         const totalCourses = fetchedCourses.length;
-        const publishedCourses = fetchedCourses.filter(course => course.isPublished).length;
-        const totalStudents = fetchedCourses.reduce((total, course) => total + (course.enrollmentCount || 0), 0);
-        const totalRevenue = fetchedCourses.reduce((total, course) => total + (course.revenue || 0), 0);
+        const publishedCourses = fetchedCourses.filter((course: Course) => course.isPublished).length;
+        const totalStudents = fetchedCourses.reduce((total: number, course: Course) => total + (course.enrollmentCount || 0), 0);
+        const totalRevenue = fetchedCourses.reduce((total: number, course: Course) => total + (course.revenue || 0), 0);
 
         setStats({
           totalCourses,
@@ -51,9 +53,10 @@ const TutorDashboardPage: React.FC = () => {
       try {
         await courseAPI.deleteCourse(courseId);
         setCourses(courses.filter(course => course._id !== courseId));
+        toast.success('Course deleted successfully.');
       } catch (error) {
         console.error('Error deleting course:', error);
-        alert('Failed to delete course. Please try again.');
+        toast.error('Failed to delete course. Please try again.');
       }
     }
   };
@@ -81,25 +84,10 @@ const TutorDashboardPage: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Total Courses</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Published</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.publishedCourses}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Total Students</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalStudents}</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-            <p className="text-2xl font-bold text-gray-900">R{stats.totalRevenue}</p>
-          </div>
+          <StatCard label="Total Courses" value={stats.totalCourses} />
+          <StatCard label="Published" value={stats.publishedCourses} />
+          <StatCard label="Total Students" value={stats.totalStudents} />
+          <StatCard label="Total Revenue" value={`R${stats.totalRevenue}`} />
         </div>
 
         {/* Courses Section */}
@@ -221,7 +209,11 @@ const TutorDashboardPage: React.FC = () => {
             <p className="text-gray-600 mb-4">
               View detailed analytics for your courses and student engagement
             </p>
-            <button className="text-blue-500 hover:text-blue-600 font-medium transition-colors">
+            <button
+              type="button"
+              onClick={() => toast.info('Tutor analytics is not available yet.')}
+              className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+            >
               View Analytics →
             </button>
           </div>
@@ -231,7 +223,11 @@ const TutorDashboardPage: React.FC = () => {
             <p className="text-gray-600 mb-4">
               Manage your students and track their progress
             </p>
-            <button className="text-blue-500 hover:text-blue-600 font-medium transition-colors">
+            <button
+              type="button"
+              onClick={() => toast.info('Student management is not available yet.')}
+              className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+            >
               Manage Students →
             </button>
           </div>
@@ -241,7 +237,11 @@ const TutorDashboardPage: React.FC = () => {
             <p className="text-gray-600 mb-4">
               Generate and manage certificates for your students
             </p>
-            <button className="text-blue-500 hover:text-blue-600 font-medium transition-colors">
+            <button
+              type="button"
+              onClick={() => toast.info('Tutor certificate management is not available yet.')}
+              className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+            >
               Manage Certificates →
             </button>
           </div>

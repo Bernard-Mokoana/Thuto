@@ -57,12 +57,31 @@ const Navbar: React.FC = () => {
 
             {isAuthenticated ? (
               <>
+              {/* Student Navbar */}
                 {isStudent ? (
                   <Link
                     to="/dashboard"
                     className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                   >
-                    Dashboard
+                    Learn
+                  </Link>
+                ) : null}
+
+                  {isStudent ? (
+                  <Link
+                    to="/dashboard"
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                  >
+                    Practice
+                  </Link>
+                ) : null}
+
+                  {isStudent ? (
+                  <Link
+                    to="/dashboard"
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                  >
+                    Stats
                   </Link>
                 ) : null}
 

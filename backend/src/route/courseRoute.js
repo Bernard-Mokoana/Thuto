@@ -16,7 +16,7 @@ import {
   tutorOnly,
   tutorOrAdmin,
 } from "../middleware/authMiddleware.js";
-import { upload } from "../utils/s3Config.utils.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = express.Router();
 

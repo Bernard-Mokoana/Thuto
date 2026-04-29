@@ -43,6 +43,7 @@ import certificateRoute from "./route/certificateRoute.js";
 import progressRoute from "./route/progressRoute.js";
 import authRoute from "./route/authRoute.js";
 import categoryRoute from "./route/categoryRoute.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 app.use("/api/v1/healthcheck", healthRoute);
 app.use("/api/v1/courses", courseRoute);
@@ -58,5 +59,7 @@ app.use("/api/v1/certificates", certificateRoute);
 app.use("/api/v1/progress", progressRoute);
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/categories", categoryRoute);
+
+app.use(errorHandler);
 
 export default app;

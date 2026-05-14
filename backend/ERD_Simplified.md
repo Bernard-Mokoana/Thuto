@@ -1,4 +1,4 @@
-# EduConnectSa - Simplified Gamified ERD
+# Thuto - Simplified Gamified ERD
 
 ## Core Flow
 

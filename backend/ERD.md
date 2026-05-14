@@ -1,8 +1,8 @@
-# EduConnectSa - Gamified Learning ERD
+# Thuto - Gamified Learning ERD
 
 ## Target Backend Schema
 
-This ERD describes the Mimo-style redesign: learning paths contain modules, modules contain short lessons, lessons contain ordered interactive steps, and steps can include tasks. Student completion is tracked through attempts, progress, XP, streaks, and achievements instead of video watching.
+This ERD describes the redesign: learning paths contain modules, modules contain short lessons, lessons contain ordered interactive steps, and steps can include tasks. Student completion is tracked through attempts, progress, XP, streaks, and achievements instead of video watching.
 
 ```mermaid
 erDiagram

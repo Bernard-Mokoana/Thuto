@@ -1,10 +1,11 @@
-# EduConnectSa - Entity Relationship Diagram (ERD)
+# EduConnectSa - Gamified Learning ERD
 
-## Complete Database Schema with Relationships
+## Target Backend Schema
+
+This ERD describes the Mimo-style redesign: learning paths contain modules, modules contain short lessons, lessons contain ordered interactive steps, and steps can include tasks. Student completion is tracked through attempts, progress, XP, streaks, and achievements instead of video watching.
 
 ```mermaid
 erDiagram
-    %% Core User Management
     USER {
         ObjectId _id PK
         String firstName
@@ -13,208 +14,153 @@ erDiagram
         String password
         String role "Student|Admin|Tutor"
         Boolean isVerified
-        String resetPasswordToken
-        Date resetPasswordExpire
+        String profileImage
         Date createdAt
         Date updatedAt
     }
 
-    %% Course Management
     CATEGORY {
         ObjectId _id PK
         String name UK
+        String slug UK
         String description
         String icon
         String color
         Boolean isActive
         ObjectId parentCategory FK
-        Number courseCount
+        Number sortOrder
         Date createdAt
         Date updatedAt
     }
 
-    COURSE {
+    LEARNING_PATH {
         ObjectId _id PK
         String title
-        String category
+        String slug UK
+        ObjectId category FK
         String description
-        Number price
-        ObjectId tutor FK
+        String level "beginner|intermediate|advanced"
+        String thumbnail
+        Number estimatedMinutes
+        Number totalXp
+        String[] tags
+        String[] outcomes
         Boolean isPublished
-        Date createdAt
-        Date updatedAt
-    }
-
-    LESSON {
-        ObjectId _id PK
-        ObjectId course FK
-        String title
-        String videoUrl
-        String content
-        Number order
-        Date createdAt
-        Date updatedAt
-    }
-
-    %% Enrollment & Progress
-    ENROLLMENT {
-        ObjectId _id PK
-        ObjectId student FK
-        ObjectId course FK
-        Array progress
-        Date enrolledAt
-        String certificateUrl
-        Date createdAt
-        Date updatedAt
-    }
-
-    PROGRESS {
-        ObjectId _id PK
-        ObjectId student FK
-        ObjectId course FK
-        ObjectId lesson FK
-        String status "not_started|in_progress|completed"
-        Number completionPercentage
-        Number timeSpent
-        Date lastAccessed
-        Array sessions
-        Array notes
-        Array bookmarks
-        Array quizAttempts
-        Date createdAt
-        Date updatedAt
-    }
-
-    %% Assessment System
-    ASSESSMENT {
-        ObjectId _id PK
-        ObjectId lesson FK
-        Object questions
-        String type "quiz|assessment|exam"
-        Date createdAt
-        Date updatedAt
-    }
-
-    SUBMISSION {
-        ObjectId _id PK
-        ObjectId assessment FK
-        ObjectId student FK
-        ObjectId course FK
-        ObjectId lesson FK
-        Array answers
-        Number grade
-        Date submittedAt
-        Boolean isCompleted
-        Date createdAt
-        Date updatedAt
-    }
-
-    CERTIFICATION {
-        ObjectId _id PK
-        ObjectId student FK
-        ObjectId course FK
-        Date issueAt
-        Number grade
-        String certificateUrl
-        Date createdAt
-        Date updatedAt
-    }
-
-    %% Financial
-    TRANSACTION {
-        ObjectId _id PK
-        ObjectId student FK
-        ObjectId course FK
-        Number amount
-        String method "eft|card|cash|wallet"
-        String status "pending|success|failed"
-        String reference
-        Date createdAt
-        Date updatedAt
-    }
-
-    COUPON {
-        ObjectId _id PK
-        String code UK
-        String name
-        String description
-        String discountType "percentage|fixed"
-        Number discountValue
-        Number minimumAmount
-        Number maximumDiscount
-        Date validFrom
-        Date validUntil
-        Number usageLimit
-        Number usedCount
-        Array applicableCourses
-        Array applicableCategories
-        Object userRestrictions
-        Boolean isActive
         ObjectId createdBy FK
         Date createdAt
         Date updatedAt
     }
 
-    %% Community & Reviews
-    REVIEW {
+    LEARNING_MODULE {
+        ObjectId _id PK
+        ObjectId path FK
+        String title
+        String description
+        Number order
+        Number requiredXpToUnlock
+        Boolean isPublished
+        Date createdAt
+        Date updatedAt
+    }
+
+    LEARNING_LESSON {
+        ObjectId _id PK
+        ObjectId module FK
+        String title
+        String summary
+        Number order
+        Number xpReward
+        Number estimatedMinutes
+        Boolean isPublished
+        Date createdAt
+        Date updatedAt
+    }
+
+    LESSON_STEP {
+        ObjectId _id PK
+        ObjectId lesson FK
+        String type "explanation|multiple_choice|fill_blank|code|matching|ordering"
+        String title
+        String prompt
+        String content
+        Number order
+        Boolean isCheckpoint
+        Date createdAt
+        Date updatedAt
+    }
+
+    TASK {
+        ObjectId _id PK
+        ObjectId step FK
+        String type "multiple_choice|fill_blank|code|matching|ordering"
+        String question
+        String instructions
+        String[] options
+        Mixed correctAnswer
+        String explanation
+        Number xpReward
+        Number maxAttempts
+        Number sortOrder
+        Date createdAt
+        Date updatedAt
+    }
+
+    PATH_ENROLLMENT {
         ObjectId _id PK
         ObjectId student FK
-        ObjectId course FK
-        Number rating
-        String title
-        String comment
-        Boolean isVerified
-        Number helpful
-        Boolean reported
+        ObjectId path FK
+        String status "active|completed|paused"
+        Date startedAt
+        Date completedAt
+        ObjectId currentLesson FK
         Date createdAt
         Date updatedAt
     }
 
-    DISCUSSION {
+    USER_PROGRESS {
         ObjectId _id PK
-        String title
-        String content
-        ObjectId author FK
-        ObjectId course FK
+        ObjectId student FK
+        ObjectId path FK
+        ObjectId module FK
         ObjectId lesson FK
-        Array tags
-        String category "question|discussion|announcement|help"
-        String status "open|resolved|closed"
-        Number views
-        Array upvotes
-        Array downvotes
-        Array comments
-        Boolean isPinned
-        Boolean isLocked
+        ObjectId step FK
+        String status "not_started|in_progress|completed"
+        Number score
+        Number xpEarned
+        Date lastAccessedAt
+        Date completedAt
         Date createdAt
         Date updatedAt
     }
 
-    %% Support System
-    SUPPORT_TICKET {
+    TASK_ATTEMPT {
         ObjectId _id PK
-        String ticketNumber UK
-        ObjectId user FK
-        String subject
-        String description
-        String category "technical|billing|course|account|general"
-        String priority "low|medium|high|urgent"
-        String status "open|in_progress|waiting_for_user|resolved|closed"
-        ObjectId assignedTo FK
-        ObjectId relatedCourse FK
-        ObjectId relatedTransaction FK
-        Array messages
-        Array tags
-        String resolution
-        Date resolvedAt
-        ObjectId resolvedBy FK
-        Number satisfactionRating
-        String satisfactionComment
+        ObjectId student FK
+        ObjectId task FK
+        ObjectId lesson FK
+        Mixed submittedAnswer
+        Boolean isCorrect
+        Number xpEarned
+        Date attemptedAt
         Date createdAt
         Date updatedAt
     }
 
-    %% Gamification
+    USER_GAMIFICATION {
+        ObjectId _id PK
+        ObjectId student FK
+        Number totalXp
+        Number level
+        Number currentStreak
+        Number longestStreak
+        Date lastActivityDate
+        Number hearts
+        Date heartsRefilledAt
+        Number dailyGoalXp
+        Date createdAt
+        Date updatedAt
+    }
+
     ACHIEVEMENT {
         ObjectId _id PK
         String name UK
@@ -234,168 +180,98 @@ erDiagram
         ObjectId user FK
         ObjectId achievement FK
         Date earnedAt
-        ObjectId relatedCourse FK
-        ObjectId relatedAssessment FK
         Object metadata
         Date createdAt
         Date updatedAt
     }
 
-    %% Notifications
     NOTIFICATION {
         ObjectId _id PK
         ObjectId recipient FK
         String title
         String message
-        String type "course|assessment|payment|system|achievement"
+        String type "learning|system|achievement"
         Boolean isRead
         String actionUrl
-        ObjectId relatedCourse FK
-        ObjectId relatedAssessment FK
         String priority "low|medium|high"
         Date expiresAt
         Date createdAt
         Date updatedAt
     }
 
-    %% Analytics
-    ANALYTICS {
-        ObjectId _id PK
-        Date date
-        String type "daily|weekly|monthly"
-        Object metrics
-        Array categoryBreakdown
-        Array topCourses
-        Object retention
-        Date createdAt
-        Date updatedAt
-    }
+    USER ||--o{ LEARNING_PATH : creates
+    USER ||--o{ PATH_ENROLLMENT : starts
+    USER ||--o{ USER_PROGRESS : tracks
+    USER ||--o{ TASK_ATTEMPT : submits
+    USER ||--|| USER_GAMIFICATION : owns
+    USER ||--o{ USER_ACHIEVEMENT : earns
+    USER ||--o{ NOTIFICATION : receives
 
-    %% Relationships with Cardinalities
+    CATEGORY ||--o{ LEARNING_PATH : groups
+    CATEGORY ||--o{ CATEGORY : contains
 
-    %% User Relationships
-    USER ||--o{ COURSE : "creates"
-    USER ||--o{ ENROLLMENT : "enrolls_in"
-    USER ||--o{ PROGRESS : "tracks_progress"
-    USER ||--o{ SUBMISSION : "submits"
-    USER ||--o{ CERTIFICATION : "receives"
-    USER ||--o{ TRANSACTION : "makes"
-    USER ||--o{ REVIEW : "writes"
-    USER ||--o{ DISCUSSION : "creates"
-    USER ||--o{ SUPPORT_TICKET : "opens"
-    USER ||--o{ USER_ACHIEVEMENT : "earns"
-    USER ||--o{ NOTIFICATION : "receives"
-    USER ||--o{ COUPON : "creates"
+    LEARNING_PATH ||--o{ LEARNING_MODULE : contains
+    LEARNING_PATH ||--o{ PATH_ENROLLMENT : enrolled_by
+    LEARNING_PATH ||--o{ USER_PROGRESS : tracked_by
 
-    %% Category Relationships
-    CATEGORY ||--o{ CATEGORY : "parent_child"
-    CATEGORY ||--o{ COURSE : "contains"
+    LEARNING_MODULE ||--o{ LEARNING_LESSON : contains
+    LEARNING_MODULE ||--o{ USER_PROGRESS : tracked_by
 
-    %% Course Relationships
-    COURSE ||--o{ LESSON : "contains"
-    COURSE ||--o{ ENROLLMENT : "enrolled_by"
-    COURSE ||--o{ PROGRESS : "progress_tracked"
-    COURSE ||--o{ SUBMISSION : "assessments_submitted"
-    COURSE ||--o{ CERTIFICATION : "certificates_issued"
-    COURSE ||--o{ TRANSACTION : "purchased"
-    COURSE ||--o{ REVIEW : "reviewed"
-    COURSE ||--o{ DISCUSSION : "discussed"
-    COURSE ||--o{ SUPPORT_TICKET : "related_to"
-    COURSE ||--o{ USER_ACHIEVEMENT : "achievement_related"
-    COURSE ||--o{ NOTIFICATION : "notification_related"
+    LEARNING_LESSON ||--o{ LESSON_STEP : contains
+    LEARNING_LESSON ||--o{ USER_PROGRESS : tracked_by
+    LEARNING_LESSON ||--o{ TASK_ATTEMPT : attempted_in
 
-    %% Lesson Relationships
-    LESSON ||--o{ ASSESSMENT : "has"
-    LESSON ||--o{ PROGRESS : "progress_tracked"
-    LESSON ||--o{ SUBMISSION : "assessments_submitted"
-    LESSON ||--o{ DISCUSSION : "discussed"
+    LESSON_STEP ||--o{ TASK : asks
+    LESSON_STEP ||--o{ USER_PROGRESS : current_step
 
-    %% Assessment Relationships
-    ASSESSMENT ||--o{ SUBMISSION : "submitted_by"
-    ASSESSMENT ||--o{ USER_ACHIEVEMENT : "achievement_related"
-    ASSESSMENT ||--o{ NOTIFICATION : "notification_related"
+    TASK ||--o{ TASK_ATTEMPT : attempted
 
-    %% Achievement Relationships
-    ACHIEVEMENT ||--o{ USER_ACHIEVEMENT : "earned_by"
-
-    %% Transaction Relationships
-    TRANSACTION ||--o{ SUPPORT_TICKET : "related_to"
-
-    %% Support Ticket Relationships
-    SUPPORT_TICKET ||--o{ SUPPORT_TICKET : "assigned_to"
+    ACHIEVEMENT ||--o{ USER_ACHIEVEMENT : awarded_as
 ```
 
-## Relationship Details
+## Migration Notes
 
-### One-to-Many (1:N) Relationships
+- `course` becomes `learningPath`.
+- `lesson` is split into `learningLesson`, `lessonStep`, and `task`.
+- `videoUrl`, `materials`, and video `duration` are removed from the target learning model.
+- `enrollment` becomes `pathEnrollment`.
+- Passive watch progress becomes task-driven `userProgress`.
+- `submission` and `assessment` are replaced by `taskAttempt` for interactive exercises.
+- `userGamification` stores XP, hearts, streaks, and daily goals.
 
-- **User → Course**: One tutor can create many courses
-- **User → Enrollment**: One student can enroll in many courses
-- **User → Progress**: One student can have progress in many lessons
-- **User → Submission**: One student can submit many assessments
-- **User → Review**: One student can write many reviews
-- **User → Discussion**: One user can create many discussions
-- **User → Support Ticket**: One user can open many tickets
-- **User → User Achievement**: One user can earn many achievements
-- **User → Notification**: One user can receive many notifications
-- **Category → Course**: One category can contain many courses
-- **Category → Category**: One category can have many subcategories (self-referencing)
-- **Course → Lesson**: One course can have many lessons
-- **Course → Enrollment**: One course can have many enrollments
-- **Course → Progress**: One course can have progress tracked by many students
-- **Course → Review**: One course can have many reviews
-- **Course → Discussion**: One course can have many discussions
-- **Lesson → Assessment**: One lesson can have many assessments
-- **Lesson → Progress**: One lesson can have progress tracked by many students
-- **Assessment → Submission**: One assessment can have many submissions
-- **Achievement → User Achievement**: One achievement can be earned by many users
+## Key Indexes
 
-### Many-to-Many (M:N) Relationships
+```ts
+// Learning path discovery
+{ category: 1, isPublished: 1 }
+{ level: 1, isPublished: 1 }
+{ title: "text", description: "text", tags: "text" }
 
-- **User ↔ Course** (via Enrollment): Many students can enroll in many courses
-- **User ↔ Lesson** (via Progress): Many students can track progress in many lessons
-- **User ↔ Assessment** (via Submission): Many students can submit many assessments
-- **User ↔ Achievement** (via User Achievement): Many users can earn many achievements
+// Ordered content
+{ path: 1, order: 1 } // unique on learning modules
+{ module: 1, order: 1 } // unique on lessons
+{ lesson: 1, order: 1 } // unique on lesson steps
+{ step: 1, sortOrder: 1 } // task order
 
-### Key Constraints
+// Student learning state
+{ student: 1, path: 1 } // unique path enrollment
+{ student: 1, lesson: 1 } // unique progress record
+{ student: 1, path: 1, status: 1 }
+{ student: 1, task: 1, attemptedAt: -1 }
 
-- **Unique Indexes**:
-  - User email (unique)
-  - Category name (unique)
-  - Course code (unique)
-  - Coupon code (unique)
-  - Support ticket number (unique)
-  - Achievement name (unique)
-  - Enrollment (student + course unique)
-  - Progress (student + lesson unique)
-  - Submission (assessment + student unique)
-  - Review (student + course unique)
-  - User Achievement (user + achievement unique)
-  - Analytics (date + type unique)
+// Gamification
+{ student: 1 } // unique user gamification record
+{ totalXp: -1 }
+{ currentStreak: -1 }
+```
 
-### Business Rules
+## Business Rules
 
-1. **Enrollment**: A student can only enroll once per course
-2. **Progress**: A student can only have one progress record per lesson
-3. **Submission**: A student can only submit once per assessment
-4. **Review**: A student can only review once per course
-5. **User Achievement**: A user can only earn each achievement once
-6. **Certification**: Issued only after course completion
-7. **Coupon**: Usage limits and expiration dates enforced
-8. **Support Ticket**: Unique ticket numbers for tracking
-
-### Data Integrity
-
-- **Foreign Key Constraints**: All ObjectId references maintain referential integrity
-- **Cascade Operations**: Consider implementing cascade deletes for related data
-- **Validation**: Schema-level validation for data types and constraints
-- **Indexing**: Strategic indexes for performance on frequently queried fields
-
-## Database Design Principles Applied
-
-1. **Normalization**: Tables are normalized to reduce redundancy
-2. **Referential Integrity**: Foreign keys maintain data consistency
-3. **Scalability**: Indexes support efficient querying as data grows
-4. **Flexibility**: Mixed data types allow for extensible schemas
-5. **Audit Trail**: Timestamps on all entities for tracking changes
-6. **Soft Deletes**: Consider implementing soft delete patterns for critical data
+- A student can enroll in a learning path once.
+- A module, lesson, and step order must be unique within its parent.
+- Task answers are hidden by default with `select: false`.
+- A completed task can award XP once in the service layer.
+- Wrong answers can reduce hearts in the service layer.
+- Streaks update from daily completed learning activity.
+- A path is complete when all required lessons in that path are complete.
+- Achievements are awarded once per student and achievement.

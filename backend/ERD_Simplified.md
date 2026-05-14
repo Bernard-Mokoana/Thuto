@@ -1,187 +1,96 @@
-# EduConnectSa - Simplified ERD
+# EduConnectSa - Simplified Gamified ERD
 
-## Core Entity Relationships
+## Core Flow
 
 ```mermaid
 graph TB
-    %% Core Entities
-    USER[👤 USER]
-    COURSE[📚 COURSE]
-    LESSON[📖 LESSON]
-    CATEGORY[📂 CATEGORY]
+    USER[USER]
+    CATEGORY[CATEGORY]
+    PATH[LEARNING PATH]
+    MODULE[MODULE]
+    LESSON[LESSON]
+    STEP[LESSON STEP]
+    TASK[TASK]
+    ENROLLMENT[PATH ENROLLMENT]
+    PROGRESS[USER PROGRESS]
+    ATTEMPT[TASK ATTEMPT]
+    GAME[USER GAMIFICATION]
+    ACHIEVEMENT[ACHIEVEMENT]
+    USER_ACHIEVEMENT[USER ACHIEVEMENT]
+    NOTIFICATION[NOTIFICATION]
 
-    %% Learning Entities
-    ENROLLMENT[🎓 ENROLLMENT]
-    PROGRESS[📈 PROGRESS]
-    ASSESSMENT[📝 ASSESSMENT]
-    SUBMISSION[📤 SUBMISSION]
-    CERTIFICATION[🏆 CERTIFICATION]
+    CATEGORY -->|groups| PATH
+    USER -->|creates| PATH
 
-    %% Financial Entities
-    TRANSACTION[💰 TRANSACTION]
-    COUPON[🎫 COUPON]
+    PATH -->|contains| MODULE
+    MODULE -->|contains| LESSON
+    LESSON -->|contains| STEP
+    STEP -->|may ask| TASK
 
-    %% Community Entities
-    REVIEW[⭐ REVIEW]
-    DISCUSSION[💬 DISCUSSION]
+    USER -->|starts| ENROLLMENT
+    PATH -->|has| ENROLLMENT
 
-    %% Support & Gamification
-    SUPPORT_TICKET[🆘 SUPPORT TICKET]
-    ACHIEVEMENT[🏅 ACHIEVEMENT]
-    USER_ACHIEVEMENT[👑 USER ACHIEVEMENT]
-    NOTIFICATION[🔔 NOTIFICATION]
-
-    %% Analytics
-    ANALYTICS[📊 ANALYTICS]
-
-    %% Core Relationships
-    USER -->|creates| COURSE
-    USER -->|enrolls in| ENROLLMENT
     USER -->|tracks| PROGRESS
-    USER -->|submits| SUBMISSION
-    USER -->|writes| REVIEW
-    USER -->|creates| DISCUSSION
-    USER -->|opens| SUPPORT_TICKET
+    PATH -->|tracked in| PROGRESS
+    MODULE -->|tracked in| PROGRESS
+    LESSON -->|tracked in| PROGRESS
+    STEP -->|current step| PROGRESS
+
+    USER -->|submits| ATTEMPT
+    TASK -->|receives| ATTEMPT
+    LESSON -->|attempted in| ATTEMPT
+
+    USER -->|has| GAME
     USER -->|earns| USER_ACHIEVEMENT
+    ACHIEVEMENT -->|awarded as| USER_ACHIEVEMENT
     USER -->|receives| NOTIFICATION
 
-    COURSE -->|contains| LESSON
-    COURSE -->|enrolled by| ENROLLMENT
-    COURSE -->|progress tracked| PROGRESS
-    COURSE -->|reviewed| REVIEW
-    COURSE -->|discussed| DISCUSSION
-
-    LESSON -->|has| ASSESSMENT
-    LESSON -->|progress tracked| PROGRESS
-    LESSON -->|discussed| DISCUSSION
-
-    ASSESSMENT -->|submitted by| SUBMISSION
-    ASSESSMENT -->|achievement related| USER_ACHIEVEMENT
-
-    ENROLLMENT -->|leads to| CERTIFICATION
-    PROGRESS -->|leads to| CERTIFICATION
-
-    TRANSACTION -->|purchases| COURSE
-    COUPON -->|discounts| TRANSACTION
-
-    ACHIEVEMENT -->|earned by| USER_ACHIEVEMENT
-
-    CATEGORY -->|contains| COURSE
-    CATEGORY -->|parent of| CATEGORY
-
-    %% Styling
-    classDef core fill:#e1f5fe
+    classDef content fill:#e1f5fe
     classDef learning fill:#f3e5f5
-    classDef financial fill:#e8f5e8
-    classDef community fill:#fff3e0
-    classDef support fill:#fce4ec
-    classDef analytics fill:#f1f8e9
+    classDef game fill:#e8f5e8
+    classDef user fill:#fff3e0
 
-    class USER,COURSE,LESSON,CATEGORY core
-    class ENROLLMENT,PROGRESS,ASSESSMENT,SUBMISSION,CERTIFICATION learning
-    class TRANSACTION,COUPON financial
-    class REVIEW,DISCUSSION community
-    class SUPPORT_TICKET,ACHIEVEMENT,USER_ACHIEVEMENT,NOTIFICATION support
-    class ANALYTICS analytics
+    class CATEGORY,PATH,MODULE,LESSON,STEP,TASK content
+    class ENROLLMENT,PROGRESS,ATTEMPT learning
+    class GAME,ACHIEVEMENT,USER_ACHIEVEMENT game
+    class USER,NOTIFICATION user
 ```
 
 ## Cardinality Summary
 
-| Relationship                       | Cardinality | Description                                      |
-| ---------------------------------- | ----------- | ------------------------------------------------ |
-| **User ↔ Course**                  | 1:N         | One tutor creates many courses                   |
-| **User ↔ Enrollment**              | 1:N         | One student enrolls in many courses              |
-| **User ↔ Progress**                | 1:N         | One student tracks progress in many lessons      |
-| **User ↔ Submission**              | 1:N         | One student submits many assessments             |
-| **User ↔ Review**                  | 1:N         | One student writes many reviews                  |
-| **User ↔ Discussion**              | 1:N         | One user creates many discussions                |
-| **User ↔ Support Ticket**          | 1:N         | One user opens many tickets                      |
-| **User ↔ User Achievement**        | 1:N         | One user earns many achievements                 |
-| **Course ↔ Lesson**                | 1:N         | One course contains many lessons                 |
-| **Course ↔ Enrollment**            | 1:N         | One course has many enrollments                  |
-| **Course ↔ Progress**              | 1:N         | One course has progress tracked by many students |
-| **Course ↔ Review**                | 1:N         | One course has many reviews                      |
-| **Course ↔ Discussion**            | 1:N         | One course has many discussions                  |
-| **Lesson ↔ Assessment**            | 1:N         | One lesson has many assessments                  |
-| **Lesson ↔ Progress**              | 1:N         | One lesson has progress tracked by many students |
-| **Assessment ↔ Submission**        | 1:N         | One assessment has many submissions              |
-| **Achievement ↔ User Achievement** | 1:N         | One achievement earned by many users             |
-| **Category ↔ Course**              | 1:N         | One category contains many courses               |
-| **Category ↔ Category**            | 1:N         | One category has many subcategories              |
+| Relationship | Cardinality | Description |
+| --- | --- | --- |
+| User to Learning Path | 1:N | One tutor/admin can create many paths |
+| Category to Learning Path | 1:N | One category groups many paths |
+| Learning Path to Module | 1:N | One path contains ordered modules |
+| Module to Lesson | 1:N | One module contains ordered lessons |
+| Lesson to Lesson Step | 1:N | One lesson contains bite-sized steps |
+| Lesson Step to Task | 1:N | One step can have one or more tasks |
+| User to Path Enrollment | 1:N | One student can start many paths |
+| User to User Progress | 1:N | One student has progress across lessons |
+| User to Task Attempt | 1:N | One student can submit many attempts |
+| User to User Gamification | 1:1 | One student has one XP/streak record |
+| Achievement to User Achievement | 1:N | One achievement can be earned by many students |
 
-## Key Business Rules
+## Main Backend Models
 
-### Unique Constraints
+| Model file | Purpose |
+| --- | --- |
+| `learningPath.ts` | Top-level learning track, replacing marketplace courses |
+| `learningModule.ts` | Ordered sections inside a path |
+| `learningLesson.ts` | Short lesson units without videos |
+| `lessonStep.ts` | One screen or prompt inside a lesson |
+| `task.ts` | Interactive question or coding exercise |
+| `pathEnrollment.ts` | Student enrollment in a path |
+| `userProgress.ts` | Student completion state per lesson |
+| `taskAttempt.ts` | Student answer submissions |
+| `userGamification.ts` | XP, level, hearts, streaks, daily goal |
 
-- ✅ **User Email**: Each user must have a unique email
-- ✅ **Course Enrollment**: One student can only enroll once per course
-- ✅ **Lesson Progress**: One student can only have one progress record per lesson
-- ✅ **Assessment Submission**: One student can only submit once per assessment
-- ✅ **Course Review**: One student can only review once per course
-- ✅ **User Achievement**: One user can only earn each achievement once
-- ✅ **Coupon Code**: Each coupon must have a unique code
-- ✅ **Support Ticket**: Each ticket must have a unique number
+## Business Rules
 
-### Data Integrity Rules
-
-- 🔒 **Foreign Key Constraints**: All ObjectId references maintain integrity
-- 🔒 **Cascade Operations**: Related data is properly managed
-- 🔒 **Validation**: Schema-level validation for data types
-- 🔒 **Indexing**: Performance optimization for frequent queries
-
-### Workflow Rules
-
-- 📋 **Enrollment → Progress → Certification**: Sequential learning progression
-- 📋 **Assessment → Submission → Grade**: Evaluation workflow
-- 📋 **Transaction → Course Access**: Payment enables course access
-- 📋 **Achievement → Notification**: Gamification triggers notifications
-- 📋 **Support Ticket → Resolution**: Support workflow with tracking
-
-## Database Optimization
-
-### Indexes for Performance
-
-```javascript
-// User queries
-{ email: 1 } // Unique index
-{ role: 1 } // Role-based queries
-
-// Course queries
-{ tutor: 1 } // Tutor's courses
-{ category: 1 } // Category filtering
-{ isPublished: 1 } // Published courses
-
-// Enrollment queries
-{ student: 1, course: 1 } // Unique compound index
-{ student: 1, enrolledAt: -1 } // Student's enrollments
-
-// Progress queries
-{ student: 1, lesson: 1 } // Unique compound index
-{ student: 1, course: 1, status: 1 } // Course progress
-
-// Assessment queries
-{ lesson: 1 } // Lesson assessments
-{ type: 1 } // Assessment type filtering
-
-// Review queries
-{ course: 1, rating: -1 } // Course reviews by rating
-{ student: 1, course: 1 } // Unique compound index
-
-// Transaction queries
-{ student: 1, status: 1 } // User transactions
-{ status: 1, createdAt: -1 } // Transaction status
-
-// Support queries
-{ user: 1, status: 1 } // User tickets
-{ assignedTo: 1, status: 1 } // Assigned tickets
-{ priority: 1, status: 1 } // Priority-based queries
-```
-
-### Query Optimization Tips
-
-1. **Use Compound Indexes**: For multi-field queries
-2. **Covered Queries**: Include all needed fields in indexes
-3. **Aggregation Pipelines**: For complex analytics queries
-4. **Pagination**: Use skip/limit for large result sets
-5. **Projection**: Only select needed fields
-6. **Lean Queries**: Use `.lean()` for read-only operations
+- Lessons are completed by finishing interactive tasks, not by watching videos.
+- Task `correctAnswer` is hidden by default and should only be selected in validation services.
+- XP, hearts, streaks, and achievements should be updated by backend services after attempts.
+- A student can only have one active enrollment record per path.
+- A student can only have one progress record per lesson.
+- Publishing should happen from top to bottom: path, module, lesson, step, task.

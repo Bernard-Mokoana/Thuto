@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const ticketMessageSchema = new Schema(
   {
@@ -14,7 +14,7 @@ const ticketMessageSchema = new Schema(
     },
     isInternal: {
       type: Boolean,
-      default: false, // For admin/internal notes
+      default: false,
     },
     attachments: [
       {
@@ -24,9 +24,7 @@ const ticketMessageSchema = new Schema(
       },
     ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const supportTicketSchema = new Schema(
@@ -53,7 +51,7 @@ const supportTicketSchema = new Schema(
     },
     category: {
       type: String,
-      enum: ["technical", "billing", "course", "account", "general"],
+      enum: ["technical", "learning_content", "account", "general"],
       required: true,
     },
     priority: {
@@ -68,15 +66,19 @@ const supportTicketSchema = new Schema(
     },
     assignedTo: {
       type: Schema.Types.ObjectId,
-      ref: "user", // Admin/Tutor assigned to handle ticket
+      ref: "user",
     },
-    relatedCourse: {
+    relatedPath: {
       type: Schema.Types.ObjectId,
-      ref: "course",
+      ref: "learningPath",
     },
-    relatedTransaction: {
+    relatedLesson: {
       type: Schema.Types.ObjectId,
-      ref: "Transaction",
+      ref: "learningLesson",
+    },
+    relatedTask: {
+      type: Schema.Types.ObjectId,
+      ref: "task",
     },
     messages: [ticketMessageSchema],
     tags: [
@@ -106,18 +108,16 @@ const supportTicketSchema = new Schema(
       trim: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Indexes for efficient querying
 supportTicketSchema.index({ ticketNumber: 1 });
 supportTicketSchema.index({ user: 1, status: 1 });
 supportTicketSchema.index({ assignedTo: 1, status: 1 });
 supportTicketSchema.index({ priority: 1, status: 1 });
 
-export const supportTicket = mongoose.model(
-  "supportTicket",
-  supportTicketSchema
-);
+export type SupportTicket = InferSchemaType<typeof supportTicketSchema>;
+
+export const supportTicket =
+  (mongoose.models.supportTicket as Model<SupportTicket>) ||
+  mongoose.model<SupportTicket>("supportTicket", supportTicketSchema);

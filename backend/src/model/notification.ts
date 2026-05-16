@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const notificationSchema = new Schema(
   {
@@ -19,7 +19,7 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["course", "assessment", "payment", "system", "achievement"],
+      enum: ["learning", "system", "achievement", "account"],
       required: true,
     },
     isRead: {
@@ -28,14 +28,19 @@ const notificationSchema = new Schema(
     },
     actionUrl: {
       type: String,
+      default: "",
     },
-    relatedCourse: {
+    relatedPath: {
       type: Schema.Types.ObjectId,
-      ref: "course",
+      ref: "learningPath",
     },
-    relatedAssessment: {
+    relatedLesson: {
       type: Schema.Types.ObjectId,
-      ref: "assessment",
+      ref: "learningLesson",
+    },
+    relatedTask: {
+      type: Schema.Types.ObjectId,
+      ref: "task",
     },
     priority: {
       type: String,
@@ -43,14 +48,17 @@ const notificationSchema = new Schema(
       default: "medium",
     },
     expiresAt: {
-      type: Date, //
+      type: Date,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 notificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
+notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const notification = mongoose.model("notification", notificationSchema);
+export type Notification = InferSchemaType<typeof notificationSchema>;
+
+export const notification =
+  (mongoose.models.notification as Model<Notification>) ||
+  mongoose.model<Notification>("notification", notificationSchema);

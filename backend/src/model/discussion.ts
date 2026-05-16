@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const commentSchema = new Schema(
   {
@@ -30,12 +30,9 @@ const commentSchema = new Schema(
     ],
     parentComment: {
       type: Schema.Types.ObjectId,
-      ref: "comment",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const discussionSchema = new Schema(
@@ -56,14 +53,18 @@ const discussionSchema = new Schema(
       ref: "user",
       required: true,
     },
-    course: {
+    path: {
       type: Schema.Types.ObjectId,
-      ref: "course",
+      ref: "learningPath",
       required: true,
     },
     lesson: {
       type: Schema.Types.ObjectId,
-      ref: "lessons",
+      ref: "learningLesson",
+    },
+    step: {
+      type: Schema.Types.ObjectId,
+      ref: "lessonStep",
     },
     tags: [
       {
@@ -107,13 +108,16 @@ const discussionSchema = new Schema(
       default: false,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-discussionSchema.index({ course: 1, createdAt: -1 });
+discussionSchema.index({ path: 1, createdAt: -1 });
+discussionSchema.index({ lesson: 1, createdAt: -1 });
 discussionSchema.index({ author: 1, createdAt: -1 });
 discussionSchema.index({ status: 1, category: 1 });
 
-export const discussion = mongoose.model("discussion", discussionSchema);
+export type Discussion = InferSchemaType<typeof discussionSchema>;
+
+export const discussion =
+  (mongoose.models.discussion as Model<Discussion>) ||
+  mongoose.model<Discussion>("discussion", discussionSchema);

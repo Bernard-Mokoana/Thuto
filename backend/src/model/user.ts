@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -17,6 +17,7 @@ const userSchema = new Schema(
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
     },
     password: {
       type: String,
@@ -34,14 +35,15 @@ const userSchema = new Schema(
     },
     profileImage: {
       type: String,
-      default: " ",
+      default: "",
     },
-    resetPasswordToken: String,
-    resetPasswordEXpire: Date,
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export const user = mongoose.model("user", userSchema);
+userSchema.index({ role: 1 });
+
+export type User = InferSchemaType<typeof userSchema>;
+
+export const user =
+  (mongoose.models.user as Model<User>) || mongoose.model<User>("user", userSchema);

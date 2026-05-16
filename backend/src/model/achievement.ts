@@ -1,4 +1,14 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
+
+export const achievementTypes = [
+  "path_completion",
+  "lesson_completion",
+  "perfect_task",
+  "xp_total",
+  "streak",
+  "first_path",
+  "daily_goal",
+] as const;
 
 const achievementSchema = new Schema(
   {
@@ -19,14 +29,7 @@ const achievementSchema = new Schema(
     },
     type: {
       type: String,
-      enum: [
-        "course_completion",
-        "perfect_score",
-        "streak",
-        "first_course",
-        "reviewer",
-        "early_bird",
-      ],
+      enum: achievementTypes,
       required: true,
     },
     criteria: {
@@ -36,6 +39,7 @@ const achievementSchema = new Schema(
     points: {
       type: Number,
       default: 0,
+      min: 0,
     },
     isActive: {
       type: Boolean,
@@ -47,9 +51,13 @@ const achievementSchema = new Schema(
       default: "common",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export const achievement = mongoose.model("achievement", achievementSchema);
+achievementSchema.index({ type: 1, isActive: 1 });
+
+export type Achievement = InferSchemaType<typeof achievementSchema>;
+
+export const achievement =
+  (mongoose.models.achievement as Model<Achievement>) ||
+  mongoose.model<Achievement>("achievement", achievementSchema);

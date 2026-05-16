@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const analyticsSchema = new Schema(
   {
@@ -15,31 +15,29 @@ const analyticsSchema = new Schema(
       totalUsers: { type: Number, default: 0 },
       newUsers: { type: Number, default: 0 },
       activeUsers: { type: Number, default: 0 },
-      totalCourses: { type: Number, default: 0 },
+      totalPaths: { type: Number, default: 0 },
       totalEnrollments: { type: Number, default: 0 },
       newEnrollments: { type: Number, default: 0 },
-      courseCompletions: { type: Number, default: 0 },
-      totalRevenue: { type: Number, default: 0 },
-      averageOrderValue: { type: Number, default: 0 },
-      totalSessions: { type: Number, default: 0 },
+      pathCompletions: { type: Number, default: 0 },
+      lessonCompletions: { type: Number, default: 0 },
+      totalTaskAttempts: { type: Number, default: 0 },
+      averageTaskAccuracy: { type: Number, default: 0 },
+      totalXpEarned: { type: Number, default: 0 },
       averageSessionDuration: { type: Number, default: 0 },
-      totalAssessmentsTaken: { type: Number, default: 0 },
-      averageAssessmentScore: { type: Number, default: 0 },
     },
     categoryBreakdown: [
       {
         category: { type: Schema.Types.ObjectId, ref: "category" },
         enrollments: Number,
-        revenue: Number,
         completions: Number,
       },
     ],
-    topCourses: [
+    topPaths: [
       {
-        course: { type: Schema.Types.ObjectId, ref: "course" },
+        path: { type: Schema.Types.ObjectId, ref: "learningPath" },
         enrollments: Number,
-        revenue: Number,
-        rating: Number,
+        completions: Number,
+        averageScore: Number,
       },
     ],
     retention: {
@@ -48,12 +46,14 @@ const analyticsSchema = new Schema(
       day30: Number,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 analyticsSchema.index({ date: 1, type: 1 }, { unique: true });
 analyticsSchema.index({ type: 1, date: -1 });
 
-export const analytics = mongoose.model("analytics", analyticsSchema);
+export type Analytics = InferSchemaType<typeof analyticsSchema>;
+
+export const analytics =
+  (mongoose.models.analytics as Model<Analytics>) ||
+  mongoose.model<Analytics>("analytics", analyticsSchema);

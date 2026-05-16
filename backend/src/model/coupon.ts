@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const couponSchema = new Schema(
   {
@@ -18,22 +18,15 @@ const couponSchema = new Schema(
       type: String,
       trim: true,
     },
-    discountType: {
+    rewardType: {
       type: String,
-      enum: ["percentage", "fixed"],
+      enum: ["bonus_xp", "hearts_refill", "streak_freeze"],
       required: true,
     },
-    discountValue: {
+    rewardValue: {
       type: Number,
       required: true,
       min: 0,
-    },
-    minimumAmount: {
-      type: Number,
-      default: 0,
-    },
-    maximumDiscount: {
-      type: Number,
     },
     validFrom: {
       type: Date,
@@ -50,10 +43,10 @@ const couponSchema = new Schema(
       type: Number,
       default: 0,
     },
-    applicableCourses: [
+    applicablePaths: [
       {
         type: Schema.Types.ObjectId,
-        ref: "course",
+        ref: "learningPath",
       },
     ],
     applicableCategories: [
@@ -88,13 +81,14 @@ const couponSchema = new Schema(
       required: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Indexes for efficient querying
 couponSchema.index({ code: 1, isActive: 1 });
 couponSchema.index({ validFrom: 1, validUntil: 1 });
 
-export const coupon = mongoose.model("coupon", couponSchema);
+export type Coupon = InferSchemaType<typeof couponSchema>;
+
+export const coupon =
+  (mongoose.models.coupon as Model<Coupon>) ||
+  mongoose.model<Coupon>("coupon", couponSchema);

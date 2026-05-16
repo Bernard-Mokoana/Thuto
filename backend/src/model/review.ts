@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 
 const reviewSchema = new Schema(
   {
@@ -7,9 +7,9 @@ const reviewSchema = new Schema(
       ref: "user",
       required: true,
     },
-    course: {
+    path: {
       type: Schema.Types.ObjectId,
-      ref: "course",
+      ref: "learningPath",
       required: true,
     },
     rating: {
@@ -32,7 +32,7 @@ const reviewSchema = new Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false, // Only verified after course completion
+      default: false,
     },
     helpful: {
       type: Number,
@@ -43,12 +43,14 @@ const reviewSchema = new Schema(
       default: false,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Ensure one review per student per course
-reviewSchema.index({ student: 1, course: 1 }, { unique: true });
+reviewSchema.index({ student: 1, path: 1 }, { unique: true });
+reviewSchema.index({ path: 1, rating: -1 });
 
-export const review = mongoose.model("review", reviewSchema);
+export type Review = InferSchemaType<typeof reviewSchema>;
+
+export const review =
+  (mongoose.models.review as Model<Review>) ||
+  mongoose.model<Review>("review", reviewSchema);

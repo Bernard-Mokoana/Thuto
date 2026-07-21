@@ -1,9 +1,18 @@
 import type React from "react";
 
 export type UserRole = "Student" | "Tutor" | "Admin";
-export type AssessmentType = "quiz" | "assessment" | "exam";
-export type TransactionStatus = "pending" | "success" | "failed";
-export type TransactionMethod = "eft" | "card" | "cash" | "wallet";
+export type LearningLevel = "beginner" | "intermediate" | "advanced";
+export type LessonStepType =
+  | "explanation"
+  | "multiple_choice"
+  | "fill_blank"
+  | "code"
+  | "matching"
+  | "ordering";
+export type TaskType = Exclude<LessonStepType, "explanation">;
+export type PathEnrollmentStatus = "active" | "completed" | "paused";
+export type ProgressStatus = "not_started" | "in_progress" | "completed";
+
 export type DeleteTarget =
   | { type: "user"; id: string }
   | { type: "course"; id: string }
@@ -39,6 +48,8 @@ export interface Category {
   color?: string;
   parentCategory?: string;
   sortOrder?: number;
+  pathCount?: number;
+  courseCount?: number;
   isActive?: boolean;
 }
 
@@ -81,53 +92,122 @@ export type ToggleSettingCardProps = {
   onToggle: () => void;
 };
 
-export interface Course {
+export interface LearningPath {
   _id: string;
   title: string;
+  slug?: string;
   description: string;
-  price: number;
-  level: string;
-  duration: number;
+  level: LearningLevel;
   thumbnail?: string;
+  estimatedMinutes: number;
+  duration?: number;
+  totalXp: number;
+  price?: number;
+  revenue?: number;
   category?: {
     _id?: string;
     name: string;
   };
+  createdBy?: TutorProfile;
   tutor?: TutorProfile;
   isPublished: boolean;
   createdAt?: string;
-  enrollmentCount?: number;
-  revenue?: number;
-  requirements?: string[];
-  learningOutcomes?: string[];
   tags?: string[];
+  outcomes?: string[];
+  moduleCount?: number;
+  lessonCount?: number;
+  enrollmentCount?: number;
+  progress?: number;
 }
 
-export interface Lesson {
+export interface LearningModule {
   _id: string;
+  path: string;
   title: string;
-  content: string;
-  videoUrl?: string;
+  description?: string;
   order: number;
-  duration?: number;
-  materials?: string[];
+  requiredXpToUnlock?: number;
+  isPublished?: boolean;
 }
 
-export interface EnrollmentProgress {
+export interface LearningLesson {
+  _id: string;
+  module: string;
+  title: string;
+  summary?: string;
+  order: number;
+  xpReward: number;
+  estimatedMinutes: number;
+  isPublished?: boolean;
+}
+
+export interface Task {
+  _id: string;
+  step: string;
+  type: TaskType;
+  question: string;
+  instructions?: string;
+  options?: string[];
+  explanation?: string;
+  xpReward: number;
+  maxAttempts?: number;
+  sortOrder?: number;
+}
+
+export interface LessonStep {
+  _id: string;
   lesson: string;
-  completed: boolean;
+  type: LessonStepType;
+  title?: string;
+  prompt?: string;
+  content?: string;
+  order: number;
+  isCheckpoint?: boolean;
+  tasks?: Task[];
+}
+
+export interface PathEnrollment {
+  _id: string;
+  path: LearningPath;
+  status: PathEnrollmentStatus;
+  startedAt: string;
+  completedAt?: string;
+  currentLesson?: LearningLesson;
+  progress?: UserProgress[];
+}
+
+export interface UserProgress {
+  _id: string;
+  path: string;
+  module: string;
+  lesson: string;
+  step?: string;
+  status: ProgressStatus;
+  completed?: boolean;
+  score: number;
+  xpEarned: number;
+  lastAccessedAt?: string;
   completedAt?: string;
 }
 
-export interface Enrollment {
-  _id: string;
-  course: Pick<
-    Course,
-    "_id" | "title" | "description" | "thumbnail" | "duration" | "level"
-  >;
-  progress: EnrollmentProgress[];
-  enrolledAt: string;
-  certificateUrl?: string;
+export type EnrollmentProgress = UserProgress;
+
+export interface UserGamification {
+  _id?: string;
+  totalXp: number;
+  level: number;
+  currentStreak: number;
+  longestStreak: number;
+  hearts: number;
+  dailyGoalXp: number;
+}
+
+export interface TaskAttemptResponse {
+  isCorrect: boolean;
+  feedback?: string;
+  xpEarned: number;
+  heartsRemaining?: number;
+  progress?: UserProgress;
 }
 
 export interface CertificateRecord {
@@ -136,24 +216,46 @@ export interface CertificateRecord {
   issueAt?: string;
   createdAt?: string;
   certificateUrl?: string;
-  course?: Pick<Course, "_id" | "title">;
+  path?: Pick<LearningPath, "_id" | "title">;
+  course?: Pick<LearningPath, "_id" | "title">;
 }
 
 export interface SubmissonData {
-  title: string;
-  content: string;
+  taskId: string;
+  submittedAnswer: unknown;
 }
+
+export type Course = LearningPath;
+export type Lesson = LearningLesson & {
+  content?: string;
+  videoUrl?: string;
+  duration?: number;
+  materials?: string[];
+};
+export type Enrollment = PathEnrollment & {
+  course?: Pick<
+    LearningPath,
+    "_id" | "title" | "description" | "thumbnail" | "estimatedMinutes" | "level"
+  > & { duration?: number };
+  enrolledAt?: string;
+  certificateUrl?: string;
+};
 
 export interface AssessmentQuestion {
   question: string;
   options: string[];
-  correctionAnswer: string;
+  correctionAnswer?: string;
+  correctAnswer?: string;
 }
 
 export interface CreateAssessment {
-  lesson: string;
-  questions: AssessmentQuestion[];
-  type?: AssessmentType;
+  step: string;
+  type: TaskType;
+  question: string;
+  options?: string[];
+  correctAnswer: unknown;
+  explanation?: string;
+  xpReward?: number;
 }
 
 export interface Transaction {
@@ -161,8 +263,8 @@ export interface Transaction {
   student: string;
   course: string;
   amount: number;
-  method: TransactionMethod;
-  status: TransactionStatus;
+  method: "eft" | "card" | "cash" | "wallet";
+  status: "pending" | "success" | "failed";
   reference?: string;
   createdAt: string;
   updatedAt: string;

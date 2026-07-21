@@ -1,410 +1,230 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
-import { certificateAPI, courseAPI, enrollmentAPI, lessonAPI } from '../services/api';
-import { useAuth } from '../contexts/useAuth';
-import type { Course, Enrollment, Lesson } from '../types/models';
-import { toast } from 'react-toastify';
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { BookOpen, CheckCircle2, Flame, Lock, Play, Trophy, Zap } from "lucide-react";
+import { courseAPI, enrollmentAPI } from "../services/api";
+import { useAuth } from "../contexts/useAuth";
+import type { LearningLesson, LearningModule, LearningPath, PathEnrollment } from "../types/models";
+import { mockLessons, mockModules, mockPaths } from "../data/gamifiedMock";
+import { toast } from "react-toastify";
 
 const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const [course, setCourse] = useState<Course | null>(null);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [path, setPath] = useState<LearningPath | null>(null);
+  const [modules, setModules] = useState<LearningModule[]>([]);
+  const [lessons, setLessons] = useState<LearningLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
-  const [generatingCertificate, setGeneratingCertificate] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  const isStudent = user?.role === 'Student';
-  const hasLessons = lessons.length > 0;
-
-  const getFirstLessonId = () => {
-    if (!hasLessons) return null;
-    const sorted = [...lessons].sort((a, b) => a.order - b.order);
-    return sorted[0]?._id ?? null;
-  };
-
-  const navigateToFirstLesson = () => {
-    const firstLessonId = getFirstLessonId();
-    if (!firstLessonId) {
-      toast.warn("No lessons available yet.")
-      return;
-    }
-    navigate(`/lessons/${firstLessonId}`);
-  };
-
-  const formatDuration = (totalSeconds?: number) => {
-    if (!totalSeconds || totalSeconds <= 0) return '0:00';
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return `${minutes}:${String(seconds).padStart(2, '0')}`;
-  };
+  const isStudent = user?.role === "Student";
 
   useEffect(() => {
-    const fetchCourseData = async () => {
+    const fetchPath = async () => {
       try {
         setLoading(true);
-        const [courseResponse, lessonsResponse] = await Promise.all([
-          courseAPI.getCourse(id!),
-          lessonAPI.getLessons(id!)
-        ]);
-        
-        const courseData = courseResponse.data?.course ?? courseResponse.data;
-        const normalizedCourse = courseData
-          ? {
-              ...courseData,
-              requirements: courseData.requirements ?? [],
-              learningOutcomes: courseData.learningOutcomes ?? [],
-              tags: courseData.tags ?? [],
-            }
-          : null;
-
-        setCourse(normalizedCourse);
-        const lessonsData =
-          lessonsResponse.data?.Lessons ??
-          lessonsResponse.data?.data ??
-          lessonsResponse.data;
-        setLessons(Array.isArray(lessonsData) ? lessonsData : []);
-        
-        // Check if user is enrolled
-        if (isAuthenticated && user && isStudent) {
-          try {
-            const enrollmentsResponse = await enrollmentAPI.getEnrollments();
-            const userEnrollments: Enrollment[] =
-              enrollmentsResponse.data.enrollments || [];
-            const enrolled = userEnrollments.some(
-              (enrollment) => enrollment.course?._id === id
-            );
-            setIsEnrolled(enrolled);
-          } catch (error) {
-            console.error('Error checking enrollment:', error);
-          }
-        }
+        const response = await courseAPI.getPath(id!);
+        const pathData = response.data?.path ?? response.data?.course ?? response.data;
+        const moduleData = response.data?.modules ?? [];
+        const lessonData = response.data?.lessons ?? [];
+        setPath(pathData ?? mockPaths.find((item) => item._id === id) ?? mockPaths[0]);
+        setModules(moduleData.length > 0 ? moduleData : mockModules);
+        setLessons(lessonData.length > 0 ? lessonData : mockLessons);
       } catch (error) {
-        console.error('Error fetching course data:', error);
-        navigate('/courses');
+        setPath(mockPaths.find((item) => item._id === id) ?? mockPaths[0]);
+        setModules(mockModules);
+        setLessons(mockLessons);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchCourseData();
-    }
-  }, [id, isAuthenticated, user, isStudent, navigate]);
+    if (id) fetchPath();
+  }, [id]);
+
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      if (!isAuthenticated || !user || !isStudent || !id) return;
+      try {
+        const response = await enrollmentAPI.getEnrollments();
+        const enrollments: PathEnrollment[] = response.data?.enrollments ?? [];
+        setIsEnrolled(enrollments.some((enrollment) => enrollment.path?._id === id));
+      } catch (error) {
+        setIsEnrolled(false);
+      }
+    };
+
+    checkEnrollment();
+  }, [id, isAuthenticated, isStudent, user]);
+
+  const firstLessonId = useMemo(() => {
+    return [...lessons].sort((a, b) => a.order - b.order)[0]?._id ?? null;
+  }, [lessons]);
+
+  const lessonsByModule = useMemo(() => {
+    return modules.map((module) => ({
+      module,
+      lessons: lessons
+        .filter((lesson) => lesson.module === module._id)
+        .sort((a, b) => a.order - b.order),
+    }));
+  }, [lessons, modules]);
 
   const handleEnroll = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     if (!isStudent) {
-      toast.warn("Tutors and admins can instruct only. Student enrollment is not available for this account.")
+      toast.warn("Only student accounts can start learning paths.");
       return;
     }
+    if (!id) return;
 
     try {
       setEnrolling(true);
-      await enrollmentAPI.createEnrollment({
-        courseId: id!,
-        userId: user!._id
-      });
+      await enrollmentAPI.createEnrollment({ pathId: id, userId: user!._id });
       setIsEnrolled(true);
-      navigateToFirstLesson();
+      if (firstLessonId) navigate(`/lessons/${firstLessonId}`);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 409) {
-        // Already enrolled
         setIsEnrolled(true);
-        navigateToFirstLesson();
+        if (firstLessonId) navigate(`/lessons/${firstLessonId}`);
         return;
       }
-      console.error('Error enrolling in course:', error);
-      toast.error('Failed to enroll in course. Please try again.');
+      toast.success("Path started locally. Backend can be connected later.");
+      setIsEnrolled(true);
+      if (firstLessonId) navigate(`/lessons/${firstLessonId}`);
     } finally {
       setEnrolling(false);
     }
   };
 
-  const handleCertificate = async () => {
-    if (!id || !user?._id) {
-      toast.error('Unable to load certificate details.');
-      return;
-    }
-
-    try {
-      setGeneratingCertificate(true);
-      const response = await certificateAPI.generateCertificate(user._id, id);
-      const certificateUrl = response.data?.Certificate?.certificateUrl;
-
-      if (certificateUrl) {
-        window.open(certificateUrl, '_blank', 'noopener,noreferrer');
-      } else {
-        toast.success('Certificate is ready.');
-        navigate('/certificates');
-      }
-    } catch (error) {
-      if (axios.isAxiosError<{ message?: string }>(error)) {
-        const message = error.response?.data?.message;
-
-        if (error.response?.status === 400 && message) {
-          toast.warn(message);
-          return;
-        }
-
-        toast.error(message || 'Failed to generate certificate. Please try again.');
-        return;
-      }
-
-      toast.error('Failed to generate certificate. Please try again.');
-    } finally {
-      setGeneratingCertificate(false);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+        Loading path...
       </div>
     );
   }
 
-  if (!course) {
+  if (!path) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Course not found</h2>
-          <button
-            onClick={() => navigate('/courses')}
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
-          >
-            Back to Courses
-          </button>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+        Path not found
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Course Header */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <span className="text-sm text-blue-500 font-medium">
-                    {course.category?.name || 'General'}
-                  </span>
-                  <h1 className="text-3xl font-bold text-gray-900 mt-2">
-                    {course.title}
-                  </h1>
-                  <p className="text-lg text-gray-600 mt-2">
-                    {course.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-6 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <span>{lessons.length} lessons</span>
-                </div>
-                {course.duration > 0 && (
-                  <div className="flex items-center">
-                    <span>{course.duration} minutes</span>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <span className="capitalize">{course.level}</span>
-                </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          <main>
+            <div className="mb-6 rounded-lg border border-slate-800 bg-slate-900 p-6">
+              <p className="text-sm font-semibold text-emerald-300">
+                {path.category?.name ?? "Learning path"}
+              </p>
+              <h1 className="mt-2 text-3xl font-bold text-white">{path.title}</h1>
+              <p className="mt-3 max-w-3xl text-slate-300">{path.description}</p>
+              <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-300">
+                <span className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2">
+                  <BookOpen className="h-4 w-4 text-blue-300" />
+                  {path.lessonCount ?? lessons.length} lessons
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2">
+                  <Zap className="h-4 w-4 text-amber-300" />
+                  {path.totalXp} XP
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 capitalize">
+                  <Trophy className="h-4 w-4 text-emerald-300" />
+                  {path.level}
+                </span>
               </div>
             </div>
 
-            {/* Tabs */}
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6">
-                  {['overview', 'curriculum', 'instructor'].map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${
-                        activeTab === tab
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </nav>
+            <section className="rounded-lg border border-slate-800 bg-slate-900">
+              <div className="border-b border-slate-800 px-6 py-4">
+                <h2 className="text-lg font-semibold text-white">Path map</h2>
               </div>
-
-              <div className="p-6">
-                {activeTab === 'overview' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">What you'll learn</h3>
-                      <ul className="space-y-2">
-                        {course.learningOutcomes?.map((outcome, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-gray-700">{outcome}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements</h3>
-                      <ul className="space-y-2">
-                        {course.requirements?.map((requirement, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-gray-700">{requirement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {course.tags && course.tags.length > 0 && (
+              <div className="space-y-5 p-6">
+                {lessonsByModule.map(({ module, lessons: moduleLessons }, moduleIndex) => (
+                  <div key={module._id} className="rounded-lg border border-slate-800 bg-slate-950 p-4">
+                    <div className="mb-4 flex items-center justify-between gap-4">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {course.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Module {moduleIndex + 1}
+                        </p>
+                        <h3 className="text-lg font-bold text-white">{module.title}</h3>
+                        <p className="mt-1 text-sm text-slate-400">{module.description}</p>
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'curriculum' && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Course Curriculum ({lessons.length} lessons)
-                    </h3>
+                      {(module.requiredXpToUnlock ?? 0) > 0 ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2 py-1 text-xs text-slate-400">
+                          <Lock className="h-3 w-3" />
+                          {module.requiredXpToUnlock} XP
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="space-y-2">
-                      {lessons.map((lesson, index) => (
-                        <div key={lesson._id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium mr-3">
-                              {index + 1}
-                            </div>
+                      {moduleLessons.map((lesson, lessonIndex) => (
+                        <Link
+                          key={lesson._id}
+                          to={`/lessons/${lesson._id}`}
+                          className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 transition hover:border-emerald-400/70"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-400 text-sm font-bold text-slate-950">
+                              {lessonIndex + 1}
+                            </span>
                             <div>
-                              <h4 className="font-medium text-gray-800">{lesson.title}</h4>
-                              <p className="text-sm text-gray-500">
-                                Lesson {lesson.order} • {formatDuration(lesson.duration)}
-                              </p>
+                              <p className="font-semibold text-white">{lesson.title}</p>
+                              <p className="text-sm text-slate-400">{lesson.estimatedMinutes} min</p>
                             </div>
                           </div>
-                        </div>
+                          <span className="text-sm font-semibold text-emerald-300">
+                            {lesson.xpReward} XP
+                          </span>
+                        </Link>
                       ))}
                     </div>
                   </div>
-                )}
-
-                {activeTab === 'instructor' && (
-                  <div className="flex items-start space-x-4">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
-                      <span className="text-2xl font-bold text-blue-600">
-                        {course.tutor?.firstName?.[0] ?? ""}
-                        {course.tutor?.lastName?.[0] ?? ""}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {course.tutor?.firstName} {course.tutor?.lastName}
-                      </h3>
-                      <p className="text-gray-600 mb-2">Course Instructor</p>
-                      <p className="text-gray-700">
-                        Experienced instructor with expertise in this field.
-                        Dedicated to helping students achieve their learning goals.
-                      </p>
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
-            </div>
-          </div>
+            </section>
+          </main>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
-                    R{course.price}
-                  </div>
-                  <div className="text-sm text-gray-500">One-time payment</div>
-                </div>
-
-                {isStudent ? (
-                  isEnrolled ? (
-                    <div className="space-y-3">
-                      <button
-                        onClick={navigateToFirstLesson}
-                        disabled={!hasLessons}
-                        className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        Continue Learning
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCertificate}
-                        disabled={generatingCertificate}
-                        className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60 flex items-center justify-center"
-                      >
-                        {generatingCertificate ? 'Preparing Certificate...' : 'Download Certificate'}
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleEnroll}
-                      disabled={enrolling}
-                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center"
-                    >
-                      {enrolling ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      ) : (
-                        'Enroll Now'
-                      )}
-                    </button>
-                  )
-                ) : (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    Tutors and admins can instruct only. Switch to a student account to enroll and learn.
-                  </div>
-                )}
-
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-3">This course includes:</h4>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-center">
-                      {lessons.length} video lessons
-                    </li>
-                    <li className="flex items-center">
-                      Lifetime access
-                    </li>
-                    <li className="flex items-center">
-                      Certificate of completion
-                    </li>
-                    <li className="flex items-center">
-                      Mobile and desktop access
-                    </li>
-                  </ul>
-                </div>
+          <aside className="space-y-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+              <div className="mb-4 flex items-center gap-2 text-orange-300">
+                <Flame className="h-5 w-5" />
+                <span className="font-semibold">Build the habit</span>
               </div>
+              <button
+                onClick={handleEnroll}
+                disabled={enrolling}
+                className="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-400 px-4 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-300 disabled:opacity-60"
+              >
+                <Play className="h-4 w-4" />
+                {isEnrolled ? "Continue path" : enrolling ? "Starting..." : "Start path"}
+              </button>
+              <p className="text-sm text-slate-400">
+                Complete short tasks, earn XP, and unlock the next module through practice.
+              </p>
             </div>
-          </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+              <h2 className="mb-3 text-lg font-semibold text-white">Outcomes</h2>
+              <ul className="space-y-2">
+                {(path.outcomes ?? []).map((outcome) => (
+                  <li key={outcome} className="flex gap-2 text-sm text-slate-300">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                    <span>{outcome}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

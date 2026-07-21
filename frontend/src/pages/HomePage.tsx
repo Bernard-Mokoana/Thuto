@@ -265,7 +265,7 @@ const HomePage: React.FC = () => {
                         {course.duration} min
                       </div>
                       <div className="text-2xl font-bold text-indigo-300">
-                        {formatCurrency(course.price)}
+                        {formatCurrency(course.price ?? 0)}
                       </div>
                     </div>
                     <p className="mb-4 text-sm text-slate-400">

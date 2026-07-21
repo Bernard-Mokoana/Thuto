@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
               to="/courses"
               className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
             >
-              Courses
+              Paths
             </Link>
 
             {isAuthenticated ? (
@@ -90,7 +90,7 @@ const Navbar: React.FC = () => {
                     to="/tutor-dashboard"
                     className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                   >
-                    {isAdmin ? "Admin" : "Teach"}
+                    {isAdmin ? "Admin" : "Build"}
                   </Link>
                 ) : null}
 
@@ -181,7 +181,7 @@ const Navbar: React.FC = () => {
                 className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Courses
+                Paths
               </Link>
 
               {isAuthenticated ? (

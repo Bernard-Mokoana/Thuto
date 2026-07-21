@@ -1,54 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import StatCard from '../components/dashboard/StatCard';
-import { useAuth } from '../contexts/useAuth';
-import { enrollmentAPI } from '../services/api';
-import type { Enrollment } from '../types/models';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Flame, Heart, Play, Trophy, Zap } from "lucide-react";
+import StatCard from "../components/dashboard/StatCard";
+import { useAuth } from "../contexts/useAuth";
+import { enrollmentAPI } from "../services/api";
+import type { PathEnrollment, UserGamification } from "../types/models";
+import { mockEnrollments, mockGamification } from "../data/gamifiedMock";
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [enrollments, setEnrollments] = useState<PathEnrollment[]>(mockEnrollments);
+  const [gamification] = useState<UserGamification>(mockGamification);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalCourses: 0,
-    completedCourses: 0,
-    totalTimeSpent: 0,
-    certificatesEarned: 0,
-  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
         const response = await enrollmentAPI.getEnrollments();
-        const rawEnrollments = Array.isArray(response.data?.enrollments)
-          ? response.data.enrollments
-          : [];
-        const userEnrollments = rawEnrollments.filter(
-          (enrollment: Enrollment | null): enrollment is Enrollment =>
-            Boolean(enrollment?._id && enrollment?.course)
-        );
-        setEnrollments(userEnrollments);
-
-        const totalCourses = userEnrollments.length;
-        const completedCourses = userEnrollments.filter((enrollment: Enrollment) => 
-          enrollment.certificateUrl
-        ).length;
-        const totalTimeSpent = userEnrollments.reduce(
-          (total: number, enrollment: Enrollment) =>
-            total + Number(enrollment.course?.duration || 0),
-          0
-        );
-        const certificatesEarned = completedCourses;
-
-        setStats({
-          totalCourses,
-          completedCourses,
-          totalTimeSpent,
-          certificatesEarned,
-        });
+        const rawEnrollments = response.data?.enrollments ?? [];
+        setEnrollments(rawEnrollments.length > 0 ? rawEnrollments : mockEnrollments);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        setEnrollments(mockEnrollments);
       } finally {
         setLoading(false);
       }
@@ -57,171 +30,122 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  const getProgressPercentage = (enrollment: Enrollment) => {
-    const progress = Array.isArray(enrollment.progress) ? enrollment.progress : [];
-    if (progress.length === 0) return 0;
-    const completedLessons = progress.filter(p => p.completed).length;
-    return Math.round((completedLessons / progress.length) * 100);
-  };
+  const completedLessons = enrollments.reduce(
+    (total, enrollment) =>
+      total + (enrollment.progress?.filter((item) => item.status === "completed").length ?? 0),
+    0
+  );
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+        Loading your streak...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName}!
+          <p className="text-sm font-semibold text-emerald-300">Daily practice</p>
+          <h1 className="mt-2 text-3xl font-bold text-white">
+            Welcome back, {user?.firstName ?? "learner"}.
           </h1>
-          <p className="text-lg text-gray-600 mt-2">
-            Continue your learning journey
-          </p>
+          <p className="mt-2 text-slate-300">Keep your streak alive with one short lesson.</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard label="Total Courses" value={stats.totalCourses} />
-          <StatCard label="Completed" value={stats.completedCourses} />
-          <StatCard label="Time Spent" value={`${Math.round(stats.totalTimeSpent / 60)}h`} />
-          <StatCard label="Certificates" value={stats.certificatesEarned} />
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Total XP" value={gamification.totalXp} />
+          <StatCard label="Level" value={gamification.level} />
+          <StatCard label="Streak" value={`${gamification.currentStreak} days`} />
+          <StatCard label="Completed Lessons" value={completedLessons} />
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* My Courses */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
-              </div>
-              <div className="p-6">
-                {enrollments.length > 0 ? (
-                  <div className="space-y-4">
-                    {enrollments.map((enrollment) => {
-                      const progressPercentage = getProgressPercentage(enrollment);
-                      return (
-                        <div key={enrollment._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-all">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-3">
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-800">
-                                    {enrollment.course?.title || 'Untitled Course'}
-                                  </h3>
-                                  <p className="text-sm text-gray-500">
-                                    {enrollment.course?.level || 'N/A'} - {Number(enrollment.course?.duration || 0)} min
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="mt-4">
-                                <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                                  <span>Progress</span>
-                                  <span>{progressPercentage}%</span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div
-                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${progressPercentage}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="ml-4">
-                              <Link
-                                to={`/courses/${enrollment.course?._id || ''}`}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-md inline-flex items-center text-sm hover:bg-blue-600"
-                              >
-                                Continue
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">No courses yet</h3>
-                    <p className="text-gray-500 mb-4">
-                      Start your learning journey by enrolling in a course
-                    </p>
-                    <Link
-                      to="/courses"
-                      className="bg-blue-500 text-white px-6 py-2 rounded-md inline-flex items-center hover:bg-blue-600"
-                    >
-                      Browse Courses
-                    </Link>
-                  </div>
-                )}
-              </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+          <section className="rounded-lg border border-slate-800 bg-slate-900">
+            <div className="border-b border-slate-800 px-6 py-4">
+              <h2 className="text-lg font-semibold text-white">Continue learning</h2>
             </div>
-          </div>
-
-          {/* Quick Actions & Recent Activity */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-              </div>
-              <div className="p-6 space-y-3">
-                <Link
-                  to="/courses"
-                  className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <span>Browse Courses</span>
-                </Link>
-                <Link
-                  to="/certificates"
-                  className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <span>View Certificates</span>
-                </Link>
-                <Link
-                  to="/progress"
-                  className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <span>View Progress</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-              </div>
-              <div className="p-6">
-                {enrollments.length > 0 ? (
-                  <div className="space-y-4">
-                    {enrollments.slice(0, 3).map((enrollment) => (
-                      <div key={enrollment._id} className="flex items-center space-x-3">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-800">
-                            Enrolled in {enrollment.course?.title || 'Untitled Course'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                          </p>
-                        </div>
+            <div className="space-y-4 p-6">
+              {enrollments.map((enrollment) => {
+                const progress = enrollment.path.progress ?? enrollment.progress?.[0]?.score ?? 0;
+                const lessonId = enrollment.currentLesson?._id;
+                return (
+                  <div
+                    key={enrollment._id}
+                    className="rounded-lg border border-slate-800 bg-slate-950 p-4"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                          {enrollment.path.category?.name ?? "Path"}
+                        </p>
+                        <h3 className="mt-1 text-lg font-bold text-white">
+                          {enrollment.path.title}
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Next: {enrollment.currentLesson?.title ?? "First lesson"}
+                        </p>
                       </div>
-                    ))}
+                      <Link
+                        to={lessonId ? `/lessons/${lessonId}` : `/courses/${enrollment.path._id}`}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-300"
+                      >
+                        <Play className="h-4 w-4" />
+                        Continue
+                      </Link>
+                    </div>
+                    <div className="mt-4">
+                      <div className="mb-2 flex justify-between text-sm text-slate-400">
+                        <span>Path progress</span>
+                        <span>{progress}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                        <div className="h-full bg-emerald-400" style={{ width: `${progress}%` }} />
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No recent activity</p>
-                )}
+                );
+              })}
+            </div>
+          </section>
+
+          <aside className="space-y-4">
+            <div className="rounded-lg border border-slate-800 bg-slate-900 p-5">
+              <h2 className="mb-4 text-lg font-semibold text-white">Today</h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-lg bg-slate-950 p-3">
+                  <span className="inline-flex items-center gap-2 text-slate-300">
+                    <Flame className="h-4 w-4 text-orange-300" />
+                    Streak
+                  </span>
+                  <strong>{gamification.currentStreak}</strong>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-slate-950 p-3">
+                  <span className="inline-flex items-center gap-2 text-slate-300">
+                    <Heart className="h-4 w-4 text-rose-300" />
+                    Hearts
+                  </span>
+                  <strong>{gamification.hearts}/5</strong>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-slate-950 p-3">
+                  <span className="inline-flex items-center gap-2 text-slate-300">
+                    <Zap className="h-4 w-4 text-amber-300" />
+                    Daily goal
+                  </span>
+                  <strong>{gamification.dailyGoalXp} XP</strong>
+                </div>
               </div>
             </div>
-          </div>
+            <Link
+              to="/courses"
+              className="flex items-center justify-center gap-2 rounded-lg border border-emerald-400/60 px-4 py-3 text-sm font-bold text-emerald-300 transition hover:bg-emerald-400 hover:text-slate-950"
+            >
+              <Trophy className="h-4 w-4" />
+              Browse paths
+            </Link>
+          </aside>
         </div>
       </div>
     </div>

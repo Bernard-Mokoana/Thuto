@@ -1,0 +1,57 @@
+1. Database Design changes
+  - Rename course to learningPath.
+  
+  
+2.API DESIGN
+GET    /api/v1/paths
+GET    /api/v1/paths/:id
+POST   /api/v1/paths
+PATCH  /api/v1/paths/:id
+
+GET    /api/v1/modules/path/:pathId
+POST   /api/v1/modules
+
+GET    /api/v1/lessons/module/:moduleId
+GET    /api/v1/lessons/:id
+
+GET    /api/v1/steps/lesson/:lessonId
+POST   /api/v1/steps
+
+POST   /api/v1/tasks/:taskId/attempt
+GET    /api/v1/progress/path/:pathId
+GET    /api/v1/gamification/me
+
+// Task Submit response:
+{
+  "isCorrect": true,
+  "feedback": "Correct. A variable stores a value.",
+  "xpEarned": 10,
+  "heartsRemaining": 5,
+  "lessonCompleted": false,
+  "nextStepId": "..."
+}
+
+3. Frontend redesign
+- coursesPage becomes PathsPage
+- courseDetailPage becomes pathDetailPage
+- LessonPage becomes an interactive lesson runner
+- createCoursePage becomes CreatePathPage 
+
+/Student screens:
+ - Dashboard
+ - paths
+ - paths/:id
+ - learn/:lessonId
+ - progress
+ - profile
+
+ //LessonPage
+ - Top progress bar
+ - Hearts/streak/XP compact header
+ - One step at a time
+ - Big prompt/content area
+ - Answer controls
+ - Submit button
+ - Immediate feedback
+ - continue button
+ - End screen with XP earned

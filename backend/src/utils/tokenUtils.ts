@@ -1,59 +1,74 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { Request, Response } from "express";
+
 import RefreshToken from "../model/refreshToken.ts";
 import EmailVerification from "../model/emailVerificationToken.ts";
 import resetPasswordToken from "../model/resetPasswordToken.ts";
-import dotenv from "dotenv";
-import { Request, Response } from "express";
-import { User } from "../model/user.ts";
+import type { User } from "../model/user.ts";
 
-dotenv.config({
-  path: "./.env",
-});
+const rawSecret = process.env.ACCESS_TOKEN_SECRET;
+if (!rawSecret) {
+  throw new Error(
+    "ACCESS_TOKEN_SECRET is not defined in environment variables",
+  );
+}
 
-const jwtSecret = process.env.ACCESS_TOKEN_SECRET!;
+const jwtSecret: string = rawSecret;
 const ACCESS_TTL = "15m";
-const REFRESH_TTL = 60 * 60 * 24 * 7;
+const REFRESH_TTL_SECONDS = 60 * 60 * 24 * 7;
 
-function hashToken(token: string) {
+export function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-function createJwtId() {
+export function createJwtId(): string {
   return crypto.randomBytes(16).toString("hex");
 }
 
-function signAccessToken(user: User) {
+export function signAccessToken(user: User): string {
   const payload = {
-    id: user._id?.toString(),
+    _id: user._id?.toString(),
     email: user.email,
     role: user.role,
   };
 
-  const token = jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TTL });
-  return token;
+  return jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TTL });
 }
 
-function signRefreshToken(user: User, jwtId: string) {
+export function signRefreshToken(user: User, jwtId: string): string {
   const payload = {
     id: user._id?.toString(),
     jwtId,
     role: user.role,
   };
 
-  const token = jwt.sign(payload, jwtSecret, { expiresIn: REFRESH_TTL });
-  return token;
+  return jwt.sign(payload, jwtSecret, { expiresIn: REFRESH_TTL_SECONDS });
 }
 
-async function persistRefreshToken({
+interface PersistRefreshTokenParams {
+  user: User;
+  refreshToken: string;
+  jwtId: string;
+  ip?: string;
+  userAgent?: string;
+}
+
+interface RotatableRefreshTokenDoc {
+  revokedAt?: Date | null;
+  replacedBy?: string | null;
+  save(): Promise<unknown>;
+}
+
+export async function persistRefreshToken({
   user,
   refreshToken,
   jwtId,
   ip,
   userAgent,
-}) {
+}: PersistRefreshTokenParams): Promise<void> {
   const tokenHash = hashToken(refreshToken);
-  const expiresAt = new Date(Date.now() + REFRESH_TTL * 1000);
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_SECONDS * 1000);
 
   await RefreshToken.create({
     user: user._id,
@@ -65,50 +80,53 @@ async function persistRefreshToken({
   });
 }
 
-function setRefreshCookie(res: Response, refreshToken: string) {
+export function setRefreshCookie(res: Response, refreshToken: string): void {
   const isProd = process.env.NODE_ENV === "production";
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "strict",
     path: "/api/v1/auth/refresh",
-    maxAge: REFRESH_TTL * 1000,
+    maxAge: REFRESH_TTL_SECONDS * 1000,
   });
 }
 
-async function rotateRefreshToken(
-  oldDoc,
+export async function rotateRefreshToken(
+  oldDoc: RotatableRefreshTokenDoc,
   user: User,
   req: Request,
   res: Response,
-) {
+): Promise<string> {
   oldDoc.revokedAt = new Date();
+
   const newJwtId = createJwtId();
   oldDoc.replacedBy = newJwtId;
+  await oldDoc.save();
 
-  const newAccess = signAccessToken(user);
-  const newRefresh = signRefreshToken(user, newJwtId);
+  const newAccessToken = signAccessToken(user);
+  const newRefreshToken = signRefreshToken(user, newJwtId);
+
   await persistRefreshToken({
     user,
-    refreshToken: newRefresh,
+    refreshToken: newRefreshToken,
     jwtId: newJwtId,
     ip: req.ip,
-    userAgent: req.headers["user-agent"],
+    userAgent: req.headers["user-agent"] as string | undefined,
   });
-  setRefreshCookie(res, newRefresh);
-  return newAccess;
+
+  setRefreshCookie(res, newRefreshToken);
+
+  return newAccessToken;
 }
 
-async function generateEmailVerificationToken(
+export async function generateEmailVerificationToken(
   user: User,
   jwtId: string,
-  ip: string,
-  userAgent: string,
-) {
+  ip?: string,
+  userAgent?: string,
+): Promise<string> {
   const rawToken = crypto.randomBytes(32).toString("hex");
-
   const tokenHash = hashToken(rawToken);
-
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await EmailVerification.create({
@@ -123,16 +141,14 @@ async function generateEmailVerificationToken(
   return rawToken;
 }
 
-async function generateForgotPasswordToken(
+export async function generateForgotPasswordToken(
   user: User,
   jwtId: string,
-  ip: string,
-  userAgent: string,
-) {
+  ip?: string,
+  userAgent?: string,
+): Promise<string> {
   const rawToken = crypto.randomBytes(32).toString("hex");
-
   const tokenHash = hashToken(rawToken);
-
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await resetPasswordToken.create({
@@ -146,15 +162,3 @@ async function generateForgotPasswordToken(
 
   return rawToken;
 }
-
-export {
-  hashToken,
-  createJwtId,
-  signAccessToken,
-  signRefreshToken,
-  persistRefreshToken,
-  setRefreshCookie,
-  rotateRefreshToken,
-  generateEmailVerificationToken,
-  generateForgotPasswordToken,
-};

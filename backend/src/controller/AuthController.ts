@@ -1,6 +1,12 @@
-import { user } from "../model/user.ts";
+import { Response } from "express";
+import type { Request } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
+import { user, type User as UserDoc } from "../model/user.ts";
+import RefreshToken from "../model/refreshToken.ts";
+import EmailVerificationToken from "../model/emailVerificationToken.ts";
+import ResetPasswordToken from "../model/resetPasswordToken.ts";
 import {
   signAccessToken,
   signRefreshToken,
@@ -12,19 +18,26 @@ import {
   generateEmailVerificationToken,
   generateForgotPasswordToken,
 } from "../utils/tokenUtils.ts";
-import RefreshToken from "../model/refreshToken.ts";
-import EmailVerificationToken from "../model/emailVerificationToken.ts";
 import {
   sendEmailVerification,
   sendForgotPasswordEmail,
 } from "../utils/email.util.ts";
-import ResetPasswordToken from "../model/resetPasswordToken.ts";
-import { Request, Response } from "express";
-import type { AuthenticatedRequest } from "../types/types.ts";
 
-const jwtSecret = process.env.ACCESS_TOKEN_SECRET!;
+import type { RefreshTokenPayload } from "../types/types.ts";
+
+const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
+if (!jwtSecret) {
+  throw new Error(
+    "ACCESS_TOKEN_SECRET is not defined in environment variables",
+  );
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body as { email?: string; password?: string };
 
   try {
     if (!email || !password) {
@@ -46,14 +59,13 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const accessToken = signAccessToken(User);
-
     const jwtId = createJwtId();
     const refreshToken = signRefreshToken(User, jwtId);
 
     await persistRefreshToken({
       user: User,
-      refreshToken: refreshToken,
-      jwtId: jwtId,
+      refreshToken,
+      jwtId,
       ip: req.ip,
       userAgent: req.headers["user-agent"],
     });
@@ -61,7 +73,7 @@ export const login = async (req: Request, res: Response) => {
     setRefreshCookie(res, refreshToken);
 
     return res.status(200).json({
-      message: "User login successfully ",
+      message: "User login successfully",
       accessToken,
       user: {
         _id: User._id,
@@ -76,13 +88,14 @@ export const login = async (req: Request, res: Response) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Internal server error", error: error.message });
+      .json({ message: "Internal server error", error: errorMessage(error) });
   }
 };
 
 export const logout = async (req: Request, res: Response) => {
   try {
-    const token = req.cookies.refreshToken;
+    const token: string | undefined = req.cookies?.refreshToken;
+
     if (token) {
       const tokenHash = hashToken(token);
       const doc = await RefreshToken.findOne({ tokenHash });
@@ -92,20 +105,25 @@ export const logout = async (req: Request, res: Response) => {
       }
     }
 
-    res
+    return res
       .status(200)
       .clearCookie("refreshToken", { path: "/api/v1/auth/refresh" })
       .json({ message: "User logged out successfully" });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Internal server error", error: error.message });
+      .json({ message: "Internal server error", error: errorMessage(error) });
   }
 };
 
-export const sendEmail = async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.user._id;
-  const email = req.user.email;
+export const sendEmail = async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  const email = req.user?.email;
+
+  if (!userId || !email) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
   const jwtId = createJwtId();
   const ip = req.ip;
   const userAgent = req.headers["user-agent"];
@@ -123,59 +141,52 @@ export const sendEmail = async (req: AuthenticatedRequest, res: Response) => {
       userAgent,
     );
     await sendEmailVerification(email, verificationToken);
-    if (res) {
-      return res.status(200).json({ message: "Verification email sent." });
-    }
+
+    return res.status(200).json({ message: "Verification email sent." });
   } catch (error) {
     console.error("Error sending email verification:", error);
-    if (res) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: error.message });
-    }
-    throw error;
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: errorMessage(error) });
   }
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
-    const existingUser = await user.findOne({ email: req.body.email });
+    const { email } = req.body as { email?: string };
+    const existingUser = await user.findOne({ email });
 
     if (!existingUser || !existingUser._id) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const userId = existingUser._id;
-    const email = existingUser.email;
+    const userEmail = existingUser.email;
     const jwtId = createJwtId();
     const ip = req.ip;
     const userAgent = req.headers["user-agent"];
 
     const verificationToken = await generateForgotPasswordToken(
-      userId,
+      existingUser,
       jwtId,
       ip,
       userAgent,
     );
-    await sendForgotPasswordEmail(email, verificationToken);
-    if (res) {
-      return res.status(200).json({ message: "Forgot password email sent." });
-    }
+    await sendForgotPasswordEmail(userEmail, verificationToken);
+
+    return res.status(200).json({ message: "Forgot password email sent." });
   } catch (error) {
     console.error("Error sending forgot password email:", error);
-    if (res) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: error.message });
-    }
-    throw error;
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: errorMessage(error) });
   }
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { token } = req.query;
-    const { password } = req.body;
+    const { password } = req.body as { password?: string };
 
     if (!token || typeof token !== "string") {
       return res.status(400).json({ message: "Token is required" });
@@ -186,10 +197,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     const tokenHash = hashToken(token);
-
-    const verificationToken = await ResetPasswordToken.findOne({
-      tokenHash,
-    });
+    const verificationToken = await ResetPasswordToken.findOne({ tokenHash });
 
     if (!verificationToken) {
       return res.status(400).json({ message: "Invalid token" });
@@ -200,7 +208,6 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     const User = await user.findById(verificationToken.user);
-
     if (!User) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -215,23 +222,25 @@ export const resetPassword = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Password reset successful. Please log in." });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error resetting the password", error: error.message });
+    return res.status(500).json({
+      message: "Error resetting the password",
+      error: errorMessage(error),
+    });
   }
 };
 
 export const refresh = async (req: Request, res: Response) => {
   try {
-    const token = req.cookies.refreshToken;
+    const token: string | undefined = req.cookies?.refreshToken;
 
-    if (!token) return res.status(401).json({ message: "No refresh token" });
+    if (!token) {
+      return res.status(401).json({ message: "No refresh token" });
+    }
 
-    let decoded;
-
+    let decoded: RefreshTokenPayload;
     try {
-      decoded = jwt.verify(token, jwtSecret);
-    } catch (error) {
+      decoded = jwt.verify(token, jwtSecret) as RefreshTokenPayload;
+    } catch {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
 
@@ -239,10 +248,11 @@ export const refresh = async (req: Request, res: Response) => {
     const doc = await RefreshToken.findOne({
       tokenHash,
       jwtId: decoded.jwtId,
-    }).populate("User");
+    }).populate<{ user: UserDoc }>("user");
 
-    if (!doc)
+    if (!doc) {
       return res.status(401).json({ message: "Refresh token not recognized" });
+    }
 
     if (doc.revokedAt) {
       return res.status(401).json({ message: "Refresh token revoked" });
@@ -252,12 +262,12 @@ export const refresh = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Refresh token expired" });
     }
 
-    const result = await rotateRefreshToken(doc, doc.user, req, res);
-    return res.status(200).json({ accessToken: result.accessToken });
+    const newAccessToken = await rotateRefreshToken(doc, doc.user, req, res);
+    return res.status(200).json({ accessToken: newAccessToken });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Internal server error", error: error.message });
+      .json({ message: "Internal server error", error: errorMessage(error) });
   }
 };
 
@@ -270,7 +280,6 @@ export const handleEmailVerification = async (req: Request, res: Response) => {
     }
 
     const tokenHash = hashToken(token);
-
     const verificationToken = await EmailVerificationToken.findOne({
       tokenHash,
     });
@@ -284,7 +293,6 @@ export const handleEmailVerification = async (req: Request, res: Response) => {
     }
 
     const User = await user.findById(verificationToken.user);
-
     if (!User) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -299,6 +307,6 @@ export const handleEmailVerification = async (req: Request, res: Response) => {
     console.error("Error handling email verification:", error);
     return res
       .status(500)
-      .json({ message: "Internal server error", error: error.message });
+      .json({ message: "Internal server error", error: errorMessage(error) });
   }
 };

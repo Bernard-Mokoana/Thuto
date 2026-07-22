@@ -1,4 +1,9 @@
-import express, { type Router, type Request, type Response, type NextFunction } from "express";
+import express, {
+  type Router,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import {
   enrollInCourse,
   getUserEnrollments,
@@ -16,10 +21,15 @@ const router: Router = express.Router();
 router.use(verifyJwt);
 
 router.post("/enroll", studentOnly, enrollInCourse);
-router.post("/paths/:pathId/enroll", studentOnly, (req: Request, res: Response, next: NextFunction) => {
-  (req as any).body.pathId = req.params.pathId;
-  return enrollInCourse(req, res, next);
-});
+router.post(
+  "/paths/:pathId/enroll",
+  studentOnly,
+  (req: Request, res: Response, next: NextFunction) => {
+    (req as any).body.pathId = req.params.pathId;
+    next();
+    return enrollInCourse(req, res);
+  },
+);
 router.get("/", getUserEnrollments);
 router.get("/user/:userId", adminOnly, getUserEnrollments);
 router.patch("/complete", markLessonComplete);

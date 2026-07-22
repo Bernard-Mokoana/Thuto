@@ -1,13 +1,16 @@
-import { user } from "../model/user.ts";
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
+import type { JwtUserPayload } from "../types/types.ts";
 
-dotenv.config({
-  path: "./.env",
-});
+dotenv.config();
 
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
+if (!jwtSecret) {
+  throw new Error(
+    "ACCESS_TOKEN_SECRET is not defined in environment variables",
+  );
+}
 
 export const verifyJwt = async (
   req: Request,
@@ -26,12 +29,8 @@ export const verifyJwt = async (
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret) as any;
-    (req as any).user = {
-      id: decoded.id,
-      email: decoded.email,
-      role: decoded.role,
-    };
+    const decoded = jwt.verify(token, jwtSecret) as JwtUserPayload;
+    req.user = decoded;
     next();
   } catch (error) {
     const msg =
@@ -47,7 +46,7 @@ export const adminOnly = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if ((req as any).user?.role !== "Admin") {
+  if (req.user?.role !== "Admin") {
     res.status(403).json({ message: "Admin access required" });
     return;
   }
@@ -59,18 +58,14 @@ export const tutorOnly = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if (!(req as any).user) {
+  if (!req.user) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
-
-  if ((req as any).user.role !== "Tutor") {
+  if (req.user.role !== "Tutor") {
     res
       .status(403)
-      .json({
-        message: "Tutor access required",
-        yourRole: (req as any).user.role,
-      });
+      .json({ message: "Tutor access required", yourRole: req.user.role });
     return;
   }
   next();
@@ -81,16 +76,14 @@ export const studentOnly = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if (!(req as any).user) {
+  if (!req.user) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
-
-  if ((req as any).user.role !== "Student") {
+  if (req.user.role !== "Student") {
     res.status(403).json({ message: "Student access required" });
     return;
   }
-
   next();
 };
 
@@ -99,18 +92,14 @@ export const tutorOrAdmin = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if (!(req as any).user) {
+  if (!req.user) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
-
-  if (
-    (req as any).user.role !== "Tutor" &&
-    (req as any).user.role !== "Admin"
-  ) {
+  if (req.user.role !== "Tutor" && req.user.role !== "Admin") {
     res.status(403).json({
       message: "Tutor or Admin access required",
-      yourRole: (req as any).user.role,
+      yourRole: req.user.role,
     });
     return;
   }

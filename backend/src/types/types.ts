@@ -1,4 +1,5 @@
 import type { Types } from "mongoose";
+import { JwtPayload } from "jsonwebtoken";
 
 export type UserRole = "Student" | "Admin" | "Tutor";
 
@@ -59,4 +60,14 @@ export interface AuthenticatedRequest extends Request {
     email: string;
   };
   ip: string;
+}
+
+export interface JwtUserPayload {
+  _id: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface RefreshTokenPayload extends JwtPayload {
+  jwtId: string;
 }

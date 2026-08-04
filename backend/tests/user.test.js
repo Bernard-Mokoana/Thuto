@@ -10,10 +10,10 @@ describe("User API", () => {
   describe("POST /api/v1/users/register", () => {
     it("should register a new user", async () => {
       const userData = {
-        firstName: "Bernard",
-        lastName: "Mokoana",
-        email: "bernard@gmail.com",
-        password: "Bernard@123",
+        firstName: "Name",
+        lastName: "Surname",
+        email: "email@gmail.com",
+        password: "Password@123",
         role: "Student",
       };
 
@@ -23,9 +23,9 @@ describe("User API", () => {
 
       expect(res.statusCode).toBe(201);
       expect(res.body.newUser).toHaveProperty("_id");
-      expect(res.body.newUser.email).toBe("bernard@gmail.com");
-      expect(res.body.newUser.firstName).toBe("Bernard");
-      expect(res.body.newUser.lastName).toBe("Mokoana");
+      expect(res.body.newUser.email).toBe("email@gmail.com");
+      expect(res.body.newUser.firstName).toBe("Name");
+      expect(res.body.newUser.lastName).toBe("Surname");
       expect(res.body.newUser.role).toBe("Student");
     });
 
@@ -48,8 +48,8 @@ describe("User API", () => {
       await request(app).post("/api/v1/users/register").send({
         firstName: "Dira",
         lastName: "Mokoana",
-        email: "dira@gmail.com",
-        password: "Dira@123",
+        email: "test@gmail.com",
+        password: "Test@123",
         role: "Student",
       });
 
@@ -57,7 +57,7 @@ describe("User API", () => {
       const res = await request(app).post("/api/v1/users/register").send({
         firstName: "Another",
         lastName: "User",
-        email: "dira@gmail.com",
+        email: "test@gmail.com",
         password: "Another@123",
         role: "Student",
       });

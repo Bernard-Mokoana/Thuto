@@ -4,32 +4,32 @@ A full-stack, Online learning platform built with the MERN stack (MongoDB, Expre
 
 ---
 
-## 🚀 Features
+## Features
 
 ### Backend
 
-- 🔐 **Authentication:** Secure JWT (JSON Web Token) authentication with cookie-based sessions.
-- 🧑‍🎓 **Role-Based Access Control:** Differentiated permissions for Admins, Tutors, and Students.
-- 📚 **Course Management:** Full CRUD (Create, Read, Update, Delete) functionality for courses, including details like title, description, category, and pricing.
-- 📖 **Lesson Management:** Tutors can create and manage lessons within their courses, including video content and articles.
-- 📝 **Assessments & Submissions:** Functionality for creating assessments and handling student submissions.
-- ✅ **Grading System:** Tutors can grade student submissions.
-- 🎓 **Certificate Generation:** Automatically generate certificates upon course completion.
-- 📈 **Reporting & Analytics:** Powerful reporting using MongoDB Aggregation pipelines to get insights on:
+- **Authentication:** Secure JWT (JSON Web Token) authentication with cookie-based sessions.
+- **Role-Based Access Control:** Differentiated permissions for Admins, Tutors, and Students.
+- **Course Management:** Full CRUD (Create, Read, Update, Delete) functionality for courses, including details like title, description, category, and pricing.
+- **Lesson Management:** Tutors can create and manage lessons within their courses, including video content and articles.
+- **Assessments & Submissions:** Functionality for creating assessments and handling student submissions.
+- **Grading System:** Tutors can grade student submissions.
+- **Certificate Generation:** Automatically generate certificates upon course completion.
+- **Reporting & Analytics:** Powerful reporting using MongoDB Aggregation pipelines to get insights on:
   - Average grade per course
   - Submission counts per lesson
   - Top-performing students
-- 💳 **Transactions:** Secure transaction handling for course enrollments.
+- **Transactions:** Secure transaction handling for course enrollments.
 
 ### Frontend
 
-- **⚛️ Modern UI:** A responsive and interactive user interface built with React and Vite.
-- **🌐 Type-Safe:** Developed with TypeScript for robust and maintainable code.
-- **🖥️ Component-Based Architecture:** Organized and reusable components for a scalable frontend.
+- **Modern UI:** A responsive and interactive user interface built with React and Vite.
+- **Type-Safe:** Developed with TypeScript for robust and maintainable code.
+- **Component-Based Architecture:** Organized and reusable components for a scalable frontend.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -53,7 +53,7 @@ A full-stack, Online learning platform built with the MERN stack (MongoDB, Expre
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 .
@@ -80,7 +80,7 @@ A full-stack, Online learning platform built with the MERN stack (MongoDB, Expre
 
 ---
 
-## 🏁 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -127,7 +127,7 @@ A full-stack, Online learning platform built with the MERN stack (MongoDB, Expre
 
 ---
 
-## 🧪 Testing
+## Testing
 
 The backend API is tested using Jest and Supertest. To run the test suite:
 
@@ -136,4 +136,3 @@ The backend API is tested using Jest and Supertest. To run the test suite:
    ```bash
    npm test
    ```
-

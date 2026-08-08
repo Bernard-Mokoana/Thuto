@@ -13,6 +13,9 @@ const createEmailTransporter = () => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     tls: {
       rejectUnauthorized: process.env.NODE_ENV === "production",
     },

@@ -47,7 +47,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     } catch (emailError) {
       console.error(
         "Failed to send verification email, rolling back user creation:",
-        emailError
+        emailError,
       );
       await user.findByIdAndDelete(newUser._id);
       res.status(500).json({
@@ -67,7 +67,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const getUserProfileById = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const userId = (req as any).user?.id || req.params.userId;
@@ -78,22 +78,18 @@ export const getUserProfileById = async (
     }
 
     const User = await user.findById(userId).select("-password");
-    res
-      .status(200)
-      .json({ message: "User fetched successfully", user: User });
+    res.status(200).json({ message: "User fetched successfully", user: User });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to fetched the user",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    res.status(500).json({
+      message: "Failed to fetched the user",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
 export const updateUserProfile = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const userId = (req as any).user?.id || req.params.userId;
@@ -117,39 +113,33 @@ export const updateUserProfile = async (
 
     const updated = await User.save();
 
-    res
-      .status(200)
-      .json({ message: "user updated successfully", updated });
+    res.status(200).json({ message: "user updated successfully", updated });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to update the user",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    res.status(500).json({
+      message: "Failed to update the user",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
 export const getAllUsers = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const users = await user.find().select("-password");
     res.status(200).json({ message: "Users fetch successfully", users });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to fetch users",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    res.status(500).json({
+      message: "Failed to fetch users",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
 export const updateUserRoleByAdmin = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { id } = req.params;
@@ -174,18 +164,16 @@ export const updateUserRoleByAdmin = async (
       user: await user.findById(id).select("-password"),
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to update user role",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    res.status(500).json({
+      message: "Failed to update user role",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
 export const deleteUserByAdmin = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { id } = req.params;
@@ -204,18 +192,16 @@ export const deleteUserByAdmin = async (
 
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to delete user",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    res.status(500).json({
+      message: "Failed to delete user",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
 export const deleteOwnAccount = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const userId = (req as any).user?.id;
@@ -234,11 +220,9 @@ export const deleteOwnAccount = async (
 
     res.status(200).json({ message: "Account deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to delete account",
-        error: error instanceof Error ? error.message : String(error),
-      });
+    res.status(500).json({
+      message: "Failed to delete account",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };

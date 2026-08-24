@@ -35,6 +35,13 @@ export interface ApiResponse {
   ): ApiResponse;
 }
 
+export interface ApiResponsePayload<TData = unknown> {
+  statusCode: number;
+  data: TData;
+  message: string;
+  success: boolean;
+}
+
 export type ControllerResult = Promise<ApiResponse | void>;
 
 export interface PopulatedPathRef {

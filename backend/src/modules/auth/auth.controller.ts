@@ -3,10 +3,10 @@ import type { Request } from "express";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-import { user, type User as UserDoc } from "../model/user.ts";
-import RefreshToken from "../model/refreshToken.ts";
-import EmailVerificationToken from "../model/emailVerificationToken.ts";
-import ResetPasswordToken from "../model/resetPasswordToken.ts";
+import { user, type User as UserDoc } from "../../model/user.ts";
+import RefreshTokenModel from "../../model/refreshToken.ts";
+import EmailVerificationToken from "../../model/emailVerificationToken.ts";
+import ResetPasswordToken from "../../model/resetPasswordToken.ts";
 import {
   signAccessToken,
   signRefreshToken,
@@ -17,13 +17,13 @@ import {
   rotateRefreshToken,
   generateEmailVerificationToken,
   generateForgotPasswordToken,
-} from "../utils/tokenUtils.ts";
+} from "../../utils/tokenUtils.ts";
 import {
   sendEmailVerification,
   sendForgotPasswordEmail,
-} from "../utils/email.util.ts";
+} from "../../utils/email.util.ts";
 
-import type { RefreshTokenPayload } from "../types/types.ts";
+import type { RefreshTokenPayload } from "../../types/types.ts";
 
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
 if (!jwtSecret) {
@@ -98,7 +98,7 @@ export const logout = async (req: Request, res: Response) => {
 
     if (token) {
       const tokenHash = hashToken(token);
-      const doc = await RefreshToken.findOne({ tokenHash });
+      const doc = await RefreshTokenModel.findOne({ tokenHash });
       if (doc && !doc.revokedAt) {
         doc.revokedAt = new Date();
         await doc.save();
@@ -245,7 +245,7 @@ export const refresh = async (req: Request, res: Response) => {
     }
 
     const tokenHash = hashToken(token);
-    const doc = await RefreshToken.findOne({
+    const doc = await RefreshTokenModel.findOne({
       tokenHash,
       jwtId: decoded.jwtId,
     }).populate<{ user: UserDoc }>("user");

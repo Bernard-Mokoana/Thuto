@@ -2,7 +2,7 @@ class ApiError extends Error {
   private readonly statusCode: number;
   private readonly success: boolean;
   private readonly data: null;
-  public readonly error: unknown[];
+  private readonly error: unknown[];
 
   constructor(
     statusCode: number,

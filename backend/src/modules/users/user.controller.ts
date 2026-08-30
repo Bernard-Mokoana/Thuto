@@ -1,16 +1,19 @@
 import { Request, Response } from "express";
-import { user } from "../../model/user";
+import { user } from "./user.model";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { sendEmail } from "../auth/auth.controller";
 import { ApiError } from "../../utils/ApiError";
 import { ApiResponse } from "../../utils/ApiResponse";
+import { asyncHandler } from "../../utils/asyncHandler";
 
 dotenv.config({
   path: "./env",
 });
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = asyncHandler( 
+  
+) async (req: Request, res: Response): Promise<void> => {
   const { firstName, lastName, email, password, role } = req.body;
   const imageUrl = req.file ? (req.file as any).location : null;
 
@@ -108,3 +111,157 @@ export const getAllUsers = async (
     });
   }
 };
+
+export const updateUserProfile = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as any).user?.id || req.params.userId;
+      const User = await user.findById(userId);
+
+      if (!User) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      if (req.file) {
+        User.profileImage = (req.file as any).location;
+      }
+
+      User.firstName = req.body.firstName || User.firstName;
+      User.lastName = req.body.lastName || User.lastName;
+      User.email = req.body.email || User.email;
+
+      if (req.body.password) {
+        User.password = await bcrypt.hash(req.body.password, 10);
+      }
+
+      const updated = await User.save();
+
+      res
+        .status(200)
+        .json(
+          new ApiResponse(200, updated, "User profiled updated successfully"),
+        );
+    } catch (error) {
+      res
+        .status(500)
+        .json(
+          new ApiError(
+            500,
+            "Failed to update the user profile",
+            error instanceof Error ? error.message : error,
+          ),
+        );
+    }
+  },
+);
+
+export const updateUserRoleByAdmin = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      const UserRole = ["Student", "Tutor", "Admin"];
+
+      if (!UserRole.includes(role)) {
+        res.status(400).json({ message: "Invalid role" });
+      }
+
+      const targetUser = await user.findById(id).select("-password");
+      if (!targetUser) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      targetUser.role = role;
+      await targetUser?.save();
+
+      res
+        .status(200)
+        .json(
+          new ApiResponse(200, targetUser, "User role updated successfully"),
+        );
+    } catch (error) {
+      res
+        .status(500)
+        .json(
+          new ApiError(
+            500,
+            "Failed to update user role",
+            error instanceof Error ? error.message : error,
+          ),
+        );
+    }
+  },
+);
+
+export const deleteUserByAdmin = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if ((req as any).user?.id === id) {
+        res.status(404).json({ message: "You can delete yourself" });
+        return;
+      }
+
+      const deletedUser = await user.findByIdAndDelete(id);
+
+      if (!deletedUser) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      res
+        .status(200)
+        .json(new ApiResponse(200, deletedUser, "User deleted successfully"));
+    } catch (error) {
+      res
+        .status(500)
+        .json(
+          new ApiError(
+            500,
+            "Failed to delete user",
+            error instanceof Error ? error.message : error,
+          ),
+        );
+    }
+  },
+);
+
+export const deleteOwnAccount = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        res.status(401).json({ message: "Not authenticated" });
+        return;
+      }
+
+      const deletedUser = await user.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+          res.status(404).json({ message: "User not found" });
+          return;
+        }
+
+        res
+          .status(200)
+          .json(
+            new ApiResponse(200, deletedUser, "Account deleted successfully"),
+          );
+    } catch (error) {
+      res
+        .status(500)
+        .json(
+          new ApiError(
+            500,
+            "Failed to delete account",
+            error instanceof Error ? error.message : error,
+          ),
+        );
+    }
+  },
+);
